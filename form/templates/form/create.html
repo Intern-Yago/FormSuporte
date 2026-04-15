@@ -1,0 +1,394 @@
+{% extends 'form/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Cadastrar Novo Veículo</h2>
+    
+    <form method="post" class="mt-3" id="veiculoForm">
+    {% csrf_token %}
+        
+        <!-- Mensagens de feedback -->
+        {% comment %} {% if messages %}
+        <div class="alert-container">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %} {% endcomment %}
+        
+        <div class="row g-3">
+            <!-- Campos principais -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form.pais.label_tag }}
+                    {{ form.pais }}
+                    <small class="form-text text-muted">Ex: Brasil, Japão, EUA</small>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form.brand.label_tag }}
+                    {{ form.brand }}
+                    <small class="form-text text-muted">Ex: Toyota, Honda, Ford</small>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form.modelo.label_tag }}
+                    {{ form.modelo }}
+                    <small class="form-text text-muted">Ex: Corolla, Civic, Fiesta</small>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form.ano.label_tag }}
+                    {{ form.ano }}
+                    <small class="form-text text-muted">Ex: 2015, 2018-2020</small>
+                </div>
+            </div>
+            
+            <!-- Campos opcionais -->
+            <div class="col-md-4">
+                <div class="form-group">
+                    {{ form.sistema.label_tag }}
+                    {{ form.sistema }}
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="form-group">
+                    {{ form.tipo_chave.label_tag }}
+                    {{ form.tipo_chave }}
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="form-group">
+                    {{ form.transponder.label_tag }}
+                    {{ form.transponder }}
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form.immo_part_replacement.label_tag }}
+                    {{ form.immo_part_replacement }}
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    {{ form.frequencia.label_tag }}
+                    {{ form.frequencia }}
+                </div>
+            </div>
+            
+            <!-- Campos de método com customização -->
+            <div class="col-md-12 mt-4">
+                <h5>Métodos</h5>
+                <div class="row">
+                    {% include 'form/components/column-create.html' with subtitle="Adicionar Chave" id="id_add_key" checkboxes=form.add_key%}
+                    {% include 'form/components/column-create.html' with subtitle="All keys lost" id="id_keys_lost" checkboxes=form.keys_lost%}
+                    {% include 'form/components/column-create.html' with subtitle="Ler Senha" id="id_read_password" checkboxes=form.read_password%}
+                    {% include 'form/components/column-create.html' with subtitle="Aprendizado Remoto" id="id_remote_learning" checkboxes=form.remote_learning%}
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 submits">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Salvar Veículo
+            </button>
+            <a href="{% url 'index_form' %}" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+
+{% block extra_css %}
+<style>
+/* Reset simples */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+
+/* Container centralizado */
+.container {
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Espaçamento entre seções */
+.mt-3 { margin-top: 1rem; }
+
+/* Grid layout */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.col-md-12 { flex: 1 1 100%; }
+.col-md-6 { flex: 1 1 calc(50% - 1rem); }
+.col-md-4 { flex: 1 1 calc(33.333% - 1rem); }
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .col-md-6,
+    .col-md-4,
+    .col-md-12 {
+        flex: 1 1 100%;
+    }
+}
+
+/* Formulário */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.subtitle{
+    color:#0056b3;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+}
+.submits{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/* Texto pequeno */
+.form-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* Botões */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.btn i {
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #0069d9;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+/* Alertas */
+.alert {
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    position: relative;
+}
+
+.alert-success { background-color: #d4edda; color: #155724; }
+.alert-danger { background-color: #f8d7da; color: #721c24; }
+.alert-warning { background-color: #fff3cd; color: #856404; }
+.alert-info { background-color: #d1ecf1; color: #0c5460; }
+
+.alert .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    cursor: pointer;
+    color: inherit;
+}
+
+/* Form-check (checkboxes e radios) */
+.form-check-container {
+    display: flex;
+    align-items: start;
+    margin-bottom: 0.5rem;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.form-check{
+    display: flex;
+    align-items: row;
+}
+
+.form-check input[type="checkbox"],
+.form-check input[type="radio"] {
+    margin-right: 0.5rem;
+}
+
+.form-check-label {
+    cursor: pointer;
+}
+
+/* Checkboxes customizados simulando radios */
+.method-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #007bff;
+    border-radius: 50%;
+    margin-right: 5px;
+    top: 2px;
+    cursor: pointer;
+}
+
+.method-checkbox:checked {
+    background-color: #007bff;
+}
+
+.method-checkbox:checked::after {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+}
+
+/* Estilo para 'Not Supported' */
+input[value="none"] + label {
+    color: #dc3545; /* vermelho */
+}
+
+.method-checkbox:not([value="none"]) + label {
+    color: #212529;
+}
+h5{
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    color: #0a2e5a;
+}
+</style>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+$(document).ready(function() {
+    // Elementos
+    const paisInput = $('#id_pais');
+    const marcaInput = $('#id_brand');
+    const modeloInput = $('#id_modelo');
+
+    // Ativa o campo modelo quando marca tem valor
+    function verificarCampos() {
+        modeloInput.prop('disabled', !marcaInput.val().length);
+    }
+
+    // Event listeners
+    marcaInput.on('input change', verificarCampos);
+    verificarCampos();
+    
+    // Lógica para comportamento dos checkboxes
+    function setupCheckboxBehavior() {
+        // Define os grupos de opções
+        const groups = {
+            'OBD': ['allOBD', 'partOBD'],
+            'BENCH': ['allBENCH', 'partBENCH'],
+        };
+        
+        // Aplica a todos os campos de método
+        $('[id^="id_add_key"], [id^="id_read_password"], [id^="id_remote_learning"], [id^="id_keys_lost"]').each(function() {
+            const checkboxes = $(this).find('input[type="checkbox"]');
+            
+            checkboxes.change(function() {
+                const currentValue = $(this).val();
+                const checkboxGroup = $(this).closest('.form-check').parent();
+                
+                // Se selecionou "Not supported" (none)
+                if (currentValue === 'none' && $(this).is(':checked')) {
+                    // Desmarca todas as outras opções
+                    checkboxGroup.find('input[type="checkbox"]').not(this).prop('checked', false);
+                }
+                // Se selecionou qualquer outra opção
+                else if (currentValue !== 'none' && $(this).is(':checked')) {
+                    // Desmarca o "Not supported" se estiver marcado
+                    checkboxGroup.find('input[value="none"]').prop('checked', false);
+                    
+                    // Lógica para desmarcar opções do mesmo grupo
+                    let currentGroup = null;
+                    for (const [group, values] of Object.entries(groups)) {
+                        if (values.includes(currentValue)) {
+                            currentGroup = group;
+                            break;
+                        }
+                    }
+                    
+                    if (currentGroup) {
+                        groups[currentGroup].forEach(value => {
+                            if (value !== currentValue) {
+                                checkboxGroup.find(`input[value="${value}"]`).prop('checked', false);
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    }
+
+    setupCheckboxBehavior();
+    
+    // Submit do formulário
+    $('#veiculoForm').on('submit', function() {
+        $('button[type="submit"]').prop('disabled', true)
+            .html('<i class="fas fa-spinner fa-spin"></i> Salvando...');
+    });
+});
+</script>
+{% endblock %}
+
+{% endblock %}

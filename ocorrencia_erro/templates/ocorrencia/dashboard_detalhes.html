@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Detalhes das Ocorrências</title>
+
+  <style>
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: #f8fafc;
+      padding: 24px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin-top: 30px;
+      color: #1f2933;
+    }
+
+    h3 {
+      margin-top: 15px;
+      color: #374151;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0,0,0,.05);
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      font-size: 13px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f1f5f9;
+      text-align: left;
+    }
+
+    .problem {
+      max-width: 520px;
+      white-space: pre-wrap;
+      color: #374151;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Detalhamento de Ocorrências</h1>
+
+{% regroup records by country.name as paises %}
+
+{% for pais in paises %}
+  <h2>{{ pais.grouper }}</h2>
+
+  {% regroup pais.list by responsible as responsaveis %}
+  {% for resp in responsaveis %}
+    <h3>{{ resp.grouper|default:"Sem responsável" }}</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Código</th>
+          <th>Status</th>
+          <th>Problema Detectado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in resp.list %}
+        <tr>
+          <td>{{ r.data|date:"d/m/Y" }}</td>
+          <td>{{ r.codigo_externo }}</td>
+          <td>{{ r.get_status_display }}</td>
+          <td class="problem">{{ r.problem_detected }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endfor %}
+{% endfor %}
+
+</body>
+</html>

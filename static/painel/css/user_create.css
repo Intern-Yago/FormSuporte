@@ -1,0 +1,50 @@
+.form-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+.row{ display:flex; flex-direction:column; }
+.row label{ color:var(--muted); font-size:13px; margin-bottom:6px; }
+input, select{
+height:44px; padding:0 12px; border-radius:10px;
+border:1px solid var(--stroke); background:#fff;
+}
+input:focus, select:focus{ outline:none; border-color:#0b66c3; box-shadow:0 0 0 3px rgba(11,102,195,.15); }
+.btn-primary{
+margin-top:10px; display:inline-flex; align-items:center; justify-content:center;
+height:44px; border-radius:10px; padding:0 18px; font-weight:700;
+border:1px solid #2563eb; background:linear-gradient(180deg,#2d6df7 0%, #1553cf 100%); color:#fff; cursor:pointer;
+}
+.btn-primary:hover{ filter:brightness(.96); }
+.msg-error{ background:#b91c1c; color:#fff; padding:8px 10px; border-radius:10px; margin:10px 0; }
+.msg-ok{ background:#166534; color:#fff; padding:8px 10px; border-radius:10px; margin:10px 0; }
+
+/* ====== blocos "legado suporte" ====== */
+.legacy-box{
+margin-top:14px;
+padding:14px;
+border-radius:14px;
+border:1px solid var(--stroke);
+background:#fff;
+}
+.legacy-title{ font-weight:800; margin:0 0 10px 0; }
+.radio-group{
+margin-bottom: 1rem;
+padding: 0.75rem;
+border: 1px solid var(--stroke);
+border-radius: 10px;
+background: rgba(2,6,23,.03);
+}
+.radio-options{ display:flex; gap: 1rem; flex-wrap:wrap; }
+.radio-item{ display:flex; align-items:center; }
+.radio-item label{ margin-left:.5rem; cursor:pointer; color:var(--text, #111827); }
+
+.checkbox-group{
+margin-bottom: 1rem;
+padding: 0.75rem;
+border: 1px solid var(--stroke);
+border-radius: 10px;
+background: rgba(2,6,23,.03);
+}
+.checkbox-group-header{
+display:flex; align-items:center; justify-content:space-between;
+margin-bottom:.5rem;
+}
+.selected-count{ font-size:12px; color: var(--muted); }
+.checkbox-item{ display:flex; align-items:center; gap:8px; padding:6px 0; }

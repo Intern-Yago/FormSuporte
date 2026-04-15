@@ -1,0 +1,375 @@
+{% extends 'painel/base.html' %}
+{% load static %}
+
+{% block title %}EAATA – Status de Equipamentos{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'kpis/css/suporte/dashboard.css' %}">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="eaata-app kpi-wrapper">
+  <main class="eaata-content">
+    
+    <div class="dashboard-top" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+      
+      <div style="display: flex; gap: 12px; align-items: center;">
+          <a href="{% url 'kpis:dashboard_suporte' %}" class="kpi-btn kpi-btn-dark">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            Voltar para Atendimentos
+          </a>
+          
+          <button class="kpi-btn" style="background-color: #10b981; color: white; border-color: #10b981;" onclick="exportarExcel()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Exportar XLSX
+          </button>
+      </div>
+
+      <div class="eaata-card" style="display: flex; align-items: flex-end; gap: 16px; padding: 16px 20px;">
+        <div style="display: flex; flex-direction: column;">
+            <label for="filter-start" style="font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: 6px;">DE</label>
+            <input type="month" id="filter-start" class="kpi-select" style="height: 38px; width: 165px; padding: 0 12px;">
+        </div>
+        
+        <span style="color: var(--muted); font-weight: 700; margin-bottom: 10px;">até</span>
+        
+        <div style="display: flex; flex-direction: column;">
+            <label for="filter-end" style="font-size: 11px; font-weight: 800; color: var(--muted); margin-bottom: 6px;">ATÉ (Opcional)</label>
+            <input type="month" id="filter-end" class="kpi-select" style="height: 38px; width: 165px; padding: 0 12px;">
+        </div>
+        
+        <div style="display: flex; gap: 8px;">
+            <button class="kpi-btn kpi-btn-primary" style="height: 38px; min-width: 90px;" onclick="loadData()">Filtrar</button>
+            <button class="kpi-btn" style="height: 38px; min-width: 90px; background-color: #f1f5f9; border-color: #cbd5e1;" onclick="clearFilter()">Limpar</button>
+        </div>
+      </div>
+    </div>
+
+    <section class="equip-grid" style="margin-top: 24px;">
+      <div class="eaata-card equip-card active-card" id="card-total" onclick="setFilter('Total')" style="border-top: 4px solid #0f172a;">
+        <span class="metric-label">MÁQUINAS ATIVAS (GERAL)</span>
+        <span class="metric-value" id="val-total">0</span>
+      </div>
+      <div class="eaata-card equip-card" id="card-ativos" onclick="setFilter('Ativos')" style="border-top: 4px solid #10b981;">
+        <span class="metric-label">SUPORTES ATIVOS (GERAL)</span>
+        <span class="metric-value" id="val-ativos">0</span>
+      </div>
+      <div class="eaata-card equip-card" id="card-vencidos" onclick="setFilter('Vencidos')" style="border-top: 4px solid #ef4444;">
+        <span class="metric-label">SUPORTES VENCIDOS (PERÍODO)</span>
+        <span class="metric-value" id="val-vencidos">0</span>
+      </div>
+      <div class="eaata-card equip-card" id="card-a-vencer" onclick="setFilter('A Vencer')" style="border-top: 4px solid #f59e0b;">
+        <span class="metric-label">SUPORTES A VENCER (PERÍODO)</span>
+        <span class="metric-value" id="val-vencendo">0</span>
+      </div>
+      <div class="eaata-card equip-card" id="card-bloqueados" onclick="setFilter('Bloqueados')" style="border-top: 4px solid #334155;">
+        <span class="metric-label">SUPORTES BLOQUEADOS</span>
+        <span class="metric-value" id="val-bloqueados">0</span>
+      </div>
+      <div class="eaata-card equip-card" id="card-novos" onclick="setFilter('Novos')" style="border-top: 4px solid #0099e0;">
+        <span class="metric-label">NOVOS CLIENTES (PERÍODO)</span>
+        <span class="metric-value" id="val-novos">0</span>
+      </div>
+    </section>
+
+    <section class="table-container">
+      <div style="padding: 20px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; color: var(--text-title); font-size: 16px;">Listagem de Equipamentos (<span id="table-filter-label" style="color: var(--blue);">Todas as Máquinas</span>)</h3>
+        <span id="table-count" style="font-size: 13px; font-weight: 700; color: var(--muted);">0 itens</span>
+      </div>
+      <div style="overflow-x: auto; min-height: 400px;">
+        <table class="equip-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>
+                <div style="display: flex; align-items: center; gap: 8px; position: relative;" id="machine-dropdown-container">
+                  MÁQUINA
+                  <button type="button" onclick="toggleMachineDropdown()" style="padding: 4px 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 11px; font-weight: 800; color: var(--text-title); background-color: #ffffff; outline: none; cursor: pointer; display: flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+                    Filtrar <span style="font-size: 8px;">▼</span>
+                  </button>
+                  
+                  <div id="machine-checkbox-list" style="display: none; position: absolute; top: 100%; left: 0; margin-top: 8px; background: #ffffff; border: 1px solid #e2e8f0; z-index: 100; min-width: 210px; max-height: 260px; overflow-y: auto; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-radius: 8px; padding: 12px; flex-direction: column; gap: 10px;">
+                    </div>
+                </div>
+              </th>
+              <th>Status</th>
+              <th>Data de Ativação</th>
+              <th>Data de Vencimento</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr><td colspan="5" style="text-align: center; color: var(--muted);">Carregando dados...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <div class="pagination-container">
+        <button id="btn-prev" class="page-btn" onclick="changePage(-1)">Anterior</button>
+        <span style="font-size: 13px; font-weight: 700; color: var(--muted);">Página <span id="page-current">1</span> de <span id="page-total">1</span></span>
+        <button id="btn-next" class="page-btn" onclick="changePage(1)">Próxima</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // Inicialização com mês atual do Backend
+  const initY = {{ ano|default:2026 }};
+  const initM = ({{ mes|default:3 }}).toString().padStart(2, '0');
+  
+  document.getElementById("filter-start").value = `${initY}-${initM}`;
+
+  // Variáveis de Controle Globais
+  let allClients = [];
+  let currentFilter = "Total";
+  let selectedMachines = []; 
+  let currentPage = 1;
+  const itemsPerPage = 10;
+  let currentFilteredData = []; // Armazena os dados filtrados para a exportação Excel
+
+  // Funções Utilitárias
+  function formatBR(value) {
+    return new Intl.NumberFormat("pt-BR").format(value || 0);
+  }
+
+  function getBadgeClass(status) {
+    if (status === "Ativo") return "bg-ativo";
+    if (status === "A Vencer") return "bg-vencendo";
+    if (status === "Vencido") return "bg-vencido";
+    if (status === "Bloqueado") return "bg-bloqueado";
+    return "";
+  }
+
+  // --- LÓGICA DO MENU FLUTUANTE DE CHECKBOXES ---
+  function toggleMachineDropdown() {
+    const list = document.getElementById('machine-checkbox-list');
+    list.style.display = (list.style.display === 'none' || list.style.display === '') ? 'flex' : 'none';
+  }
+
+  // Fecha o menu se clicar fora dele
+  document.addEventListener('click', function(event) {
+    const container = document.getElementById('machine-dropdown-container');
+    const list = document.getElementById('machine-checkbox-list');
+    if (container && !container.contains(event.target)) {
+        list.style.display = 'none';
+    }
+  });
+
+  // Atualiza as máquinas selecionadas e refaz os cálculos
+  function applyMachineFilter() {
+    const checkboxes = document.querySelectorAll('#machine-checkbox-list input[type="checkbox"]');
+    selectedMachines = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+    currentPage = 1; 
+    renderCardsAndTable();
+  }
+
+  // Define qual card foi clicado
+  function setFilter(filterType) {
+    currentFilter = filterType;
+    currentPage = 1;
+
+    // Estilo Visual dos Cards
+    document.querySelectorAll('.equip-card').forEach(card => card.classList.remove('active-card'));
+    let idSufix = filterType.toLowerCase().replace(" ", "-");
+    if(filterType === "Total") idSufix = "total";
+    document.getElementById(`card-${idSufix}`).classList.add('active-card');
+
+    // Atualiza o Título da Tabela
+    const labels = {
+        "Total": "Todas as Máquinas (Geral)",
+        "Ativos": "Suportes Ativos (Geral)",
+        "Vencidos": "Vencidos no Período",
+        "A Vencer": "A Vencer no Período",
+        "Bloqueados": "Bloqueados (Geral)",
+        "Novos": "Novos Clientes no Período"
+    };
+    document.getElementById("table-filter-label").textContent = labels[filterType];
+
+    renderCardsAndTable();
+  }
+
+  // --- O CORAÇÃO DO CÁLCULO ---
+  // Essa função atualiza os cards e a tabela, baseada nas máquinas ativas
+  function renderCardsAndTable() {
+    // 1. Filtra a base apenas pelas máquinas selecionadas nos checkboxes
+    let baseFiltered = [];
+    if (selectedMachines.length > 0) {
+        baseFiltered = allClients.filter(c => selectedMachines.includes(c.equipamento));
+    }
+
+    // 2. Recalcula os 6 indicadores em tempo real para os Cards
+    let total = baseFiltered.length;
+    let ativos = 0;
+    let vencidos = 0;
+    let aVencer = 0;
+    let bloqueados = 0;
+    let novos = 0;
+
+    baseFiltered.forEach(c => {
+        if (c.status === "Ativo") ativos++;
+        if (c.status === "Vencido" && c.in_venc_range) vencidos++;
+        if (c.status === "A Vencer" && c.in_venc_range) aVencer++;
+        if (c.status === "Bloqueado") bloqueados++;
+        if (c.in_creation_range) novos++;
+    });
+
+    // 3. Atualiza os números nos Cards na tela
+    document.getElementById("val-total").textContent = formatBR(total);
+    document.getElementById("val-ativos").textContent = formatBR(ativos);
+    document.getElementById("val-vencidos").textContent = formatBR(vencidos);
+    document.getElementById("val-vencendo").textContent = formatBR(aVencer);
+    document.getElementById("val-bloqueados").textContent = formatBR(bloqueados);
+    document.getElementById("val-novos").textContent = formatBR(novos);
+
+    // 4. Prepara a lista para a Tabela e Exportação, aplicando o filtro do Card clicado
+    let tableData = baseFiltered;
+    if (currentFilter === "Ativos") {
+        tableData = tableData.filter(c => c.status === "Ativo");
+    } else if (currentFilter === "Vencidos") {
+        tableData = tableData.filter(c => c.status === "Vencido" && c.in_venc_range);
+    } else if (currentFilter === "A Vencer") {
+        tableData = tableData.filter(c => c.status === "A Vencer" && c.in_venc_range);
+    } else if (currentFilter === "Bloqueados") {
+        tableData = tableData.filter(c => c.status === "Bloqueado");
+    } else if (currentFilter === "Novos") {
+        tableData = tableData.filter(c => c.in_creation_range);
+    }
+
+    // Guarda os dados filtrados para a exportação Excel
+    currentFilteredData = tableData;
+
+    // 5. Renderiza a Paginação
+    const totalItems = tableData.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+    document.getElementById("table-count").textContent = `${totalItems} item${totalItems !== 1 ? 's' : ''}`;
+
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginated = tableData.slice(startIndex, startIndex + itemsPerPage);
+
+    const tbody = document.getElementById("table-body");
+    if (paginated.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 40px;">Nenhum equipamento encontrado para este filtro.</td></tr>`;
+    } else {
+        tbody.innerHTML = paginated.map(c => `
+        <tr>
+            <td>${c.nome}</td>
+            <td style="color: var(--blue); font-weight: 800;">${c.equipamento}</td>
+            <td><span class="status-badge ${getBadgeClass(c.status)}">${c.status}</span></td>
+            <td>${c.data}</td>
+            <td>${c.vencimento}</td>
+        </tr>
+        `).join("");
+    }
+
+    document.getElementById("page-current").textContent = currentPage;
+    document.getElementById("page-total").textContent = totalPages;
+    document.getElementById("btn-prev").disabled = currentPage === 1;
+    document.getElementById("btn-next").disabled = currentPage === totalPages;
+  }
+
+  function changePage(direction) {
+    currentPage += direction;
+    renderCardsAndTable(); 
+  }
+
+  // --- CARREGAMENTO INICIAL DOS DADOS DA API ---
+  async function loadData() {
+    document.getElementById("table-body").innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 40px;">Buscando informações no banco de dados...</td></tr>`;
+
+    const startVal = document.getElementById("filter-start").value;
+    const endVal = document.getElementById("filter-end").value;
+
+    if (!startVal) { alert("Selecione pelo menos a data inicial (DE)."); return; }
+
+    const startYear = parseInt(startVal.split("-")[0]);
+    const startMonth = parseInt(startVal.split("-")[1]);
+    const endYear = endVal ? parseInt(endVal.split("-")[0]) : startYear;
+    const endMonth = endVal ? parseInt(endVal.split("-")[1]) : startMonth;
+
+    try {
+      const response = await fetch(`{% url 'kpis:api_equipamentos_summary' %}?start_year=${startYear}&start_month=${startMonth}&end_year=${endYear}&end_month=${endMonth}`, {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+      const data = await response.json();
+
+      allClients = data.clientes;
+      
+      // Cria a lista de checkboxes baseada nas máquinas retornadas
+      const uniqueMachines = [...new Set(allClients.map(c => c.equipamento))].sort();
+      const listDiv = document.getElementById("machine-checkbox-list");
+      
+      listDiv.innerHTML = uniqueMachines.map(m => `
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-title); cursor: pointer;">
+            <input type="checkbox" value="${m}" checked onchange="applyMachineFilter()" style="width: 16px; height: 16px; accent-color: var(--blue); cursor: pointer;">
+            ${m}
+        </label>
+      `).join("");
+      
+      // Marca todas por padrão
+      selectedMachines = uniqueMachines;
+
+      // Chama a função que faz a matemática dos cards e desenha a tabela
+      renderCardsAndTable();
+
+    } catch (error) {
+      console.error("Erro ao buscar dados:", error);
+      document.getElementById("table-body").innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">Erro de conexão ao carregar dados.</td></tr>`;
+    }
+  }
+
+  // --- BOTÃO DE LIMPAR FILTROS DE DATA ---
+  function clearFilter() {
+    document.getElementById("filter-start").value = `${initY}-${initM}`;
+    document.getElementById("filter-end").value = "";
+    loadData();
+  }
+
+  // --- EXPORTAR PARA EXCEL ---
+  function exportarExcel() {
+    if (currentFilteredData.length === 0) {
+        alert("Não há dados para exportar com os filtros atuais.");
+        return;
+    }
+
+    // Mapeia os dados mantendo apenas as informações visíveis na tabela
+    const dadosExcel = currentFilteredData.map(c => ({
+        "CLIENTE": c.nome,
+        "MÁQUINA": c.equipamento,
+        "STATUS": c.status.toUpperCase(),
+        "DATA DE ATIVAÇÃO": c.data,
+        "DATA DE VENCIMENTO": c.vencimento
+    }));
+
+    // Cria a planilha usando o SheetJS
+    const worksheet = XLSX.utils.json_to_sheet(dadosExcel);
+    
+    // Ajusta a largura das colunas do Excel para o texto não ficar cortado
+    worksheet['!cols'] = [
+        { wch: 45 }, // Cliente
+        { wch: 25 }, // Máquina
+        { wch: 15 }, // Status
+        { wch: 20 }, // Data de Ativação
+        { wch: 20 }  // Data de Vencimento
+    ];
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Equipamentos Filtrados");
+
+    // Monta o nome do arquivo dinamicamente com base no filtro
+    const mes = document.getElementById("filter-start").value || "Geral";
+    const nomeArquivo = `Relatorio_EAATA_${currentFilter}_${mes}.xlsx`.replace(/ /g, "_");
+    
+    // Dispara o download
+    XLSX.writeFile(workbook, nomeArquivo);
+  }
+
+  // Dispara a primeira busca assim que a página é acessada
+  loadData();
+</script>
+{% endblock %}

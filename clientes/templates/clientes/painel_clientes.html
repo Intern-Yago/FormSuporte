@@ -1,0 +1,246 @@
+{% extends 'painel/base.html' %}
+{% load static %}
+
+{% block title %}Painel de Clientes{% endblock %}
+
+{% block head %}
+  <style>
+    :root{
+      --bg:#f6f8fb; --card:#fff; --text:#172033; --muted:#6b7280; --stroke:#e5e7eb;
+      --shadow:0 10px 30px rgba(15,23,42,.07); --radius:20px; --primary:#111827;
+    }
+
+    .topbar{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:22px; }
+    .title h1{ margin:0; font-size:2rem; font-weight:800; }
+    .title p{ margin:8px 0 0; color:var(--muted); }
+
+    .stats{ display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; margin-bottom:18px; }
+    .stat{ background:var(--card); border:1px solid var(--stroke); border-radius:18px; padding:18px; box-shadow:var(--shadow); }
+    .stat small{ display:block; color:var(--muted); margin-bottom:8px; }
+    .stat strong{ font-size:1.7rem; }
+
+    .toolbar{ background:var(--card); border:1px solid var(--stroke); border-radius:20px; box-shadow:var(--shadow); padding:16px; margin-bottom:20px; }
+    .toolbar-row{ display:grid; grid-template-columns: 1fr auto auto; gap:12px; }
+    .toolbar input{ width:100%; height:46px; border:1px solid var(--stroke); border-radius:14px; padding:0 14px; font-size:15px; }
+
+    .btn-action{ height:46px; border:none; border-radius:14px; padding:0 16px; font-weight:700; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; background:#111827; color:#fff; }
+
+    .view-switch{ display:flex; gap:8px; }
+    .view-switch a{ text-decoration:none; padding:12px 14px; border-radius:12px; border:1px solid var(--stroke); background:#fff; color:#111827; font-weight:700; }
+    .view-switch a.active{ background:#111827; color:#fff; border-color:#111827; }
+
+    /* Filtros e Checkboxes Fix */
+    .filter-group { display: flex; flex-direction: column; gap: 8px; }
+    .filter-label { font-size: 0.7rem; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+    .check-list { 
+      background: #fcfcfc; border: 1px solid var(--stroke); border-radius: 12px; 
+      padding: 10px; max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; 
+    }
+    .check-list::-webkit-scrollbar { width: 4px; }
+    .check-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    
+    .check-item { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; cursor: pointer; color: var(--text); }
+    /* Tamanho fixo para evitar o "quadrado gigante" */
+    .check-item input[type="checkbox"] { 
+      width: 16px !important; height: 16px !important; min-width: 16px; min-height: 16px; 
+      margin: 0; cursor: pointer; accent-color: var(--primary);
+    }
+
+    .kanban{ display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:18px; }
+    .client-card{ background:var(--card); border:1px solid var(--stroke); border-radius:24px; box-shadow:var(--shadow); padding:24px; display:flex; flex-direction:column; gap:20px; }
+    .client-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:10px; min-width: 0; }
+    .client-info-left { flex: 1; min-width: 0; } /* Permite que o conteúdo encolha se necessário */
+    .client-name{ margin:0; font-size:1.15rem; font-weight:800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .client-email{ color:var(--muted); font-size:0.85rem; word-break: break-all; overflow-wrap: break-word; }
+    .doc-badge{ padding:7px 12px; border-radius:999px; background:#f3f4f6; font-size:.78rem; font-weight:800; white-space:nowrap; flex-shrink: 0; }
+
+    .meta{ display:grid; gap:12px; grid-template-columns: 1fr 1fr; }
+    .meta-box{ background:#fafafa; border:1px solid #edf0f3; border-radius:16px; padding:12px 16px; display: flex; flex-direction: column; gap: 4px; }
+    .meta-box small{ color:var(--muted); font-size:.76rem; text-transform:uppercase; font-weight:800; }
+
+    .pagination{ margin-top:24px; display:flex; justify-content:center; gap:8px; flex-wrap:wrap; }
+    .pagination a, .pagination span{ min-width:42px; height:42px; border-radius:12px; border:1px solid var(--stroke); background:#fff; display:inline-flex; align-items:center; justify-content:center; text-decoration:none; color:#111827; font-weight:700; padding:0 12px; }
+    .pagination .current{ background:#111827; color:#fff; border-color:#111827; }
+
+    /* Responsivo */
+    @media (max-width: 768px) {
+      .topbar{ flex-direction: column; align-items: stretch; }
+      .toolbar-row{ grid-template-columns: 1fr; }
+      .view-switch{ justify-content: center; }
+      .kanban{ grid-template-columns: 1fr; }
+      
+      .table-responsive { display: block; width: 100%; overflow-x: auto; }
+      .table-responsive table { min-width: 600px; }
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="topbar">
+  <div class="title">
+    <h1>Clientes</h1>
+    <p>Gerencie sua base de clientes, documentos e contatos.</p>
+  </div>
+  <div class="topbar-actions" style="display:flex; gap:12px; flex-wrap: wrap;">
+    <a href="{% url 'clientes:sync_all_odoo' %}" class="btn-action" style="background:#7c3aed;">Sincronizar Odoo</a>
+    <a href="{% url 'clientes:sync_shopify' %}" class="btn-action" style="background:#4b5563;">Sincronizar Shopify</a>
+    <a href="/admin/clientes/cliente/add/" class="btn-action">+ Novo</a>
+  </div>
+</div>
+
+<section class="stats">
+  <div class="stat"><small>Total</small><strong>{{ total_clientes }}</strong></div>
+  <div class="stat"><small>PF</small><strong>{{ total_pf }}</strong></div>
+  <div class="stat"><small>PJ</small><strong>{{ total_pj }}</strong></div>
+  <div class="stat"><small>Odoo</small><strong>{{ total_odoo }}</strong></div>
+</section>
+
+<section class="toolbar">
+  <form method="get" id="filter-form">
+    <div class="toolbar-row">
+      <input type="text" name="q" value="{{ busca }}" placeholder="Buscar por nome, documento, e-mail...">
+      <div class="view-switch">
+        <input type="hidden" name="view" value="{{ view_mode }}">
+        <a href="javascript:void(0)" onclick="document.getElementsByName('view')[0].value='kanban'; this.closest('form').submit();" class="{% if view_mode == 'kanban' %}active{% endif %}">Grid</a>
+        <a href="javascript:void(0)" onclick="document.getElementsByName('view')[0].value='lista'; this.closest('form').submit();" class="{% if view_mode == 'lista' %}active{% endif %}">Lista</a>
+      </div>
+      <button class="btn-action" type="submit">Buscar</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--stroke);">
+      
+      <!-- PERFIL -->
+      <div class="filter-group">
+        <label class="filter-label">Perfil</label>
+        <select name="tipo" onchange="this.form.submit()" style="width:100%; height:38px; border-radius:10px; border:1px solid var(--stroke);">
+          <option value="">Tipo: Todos</option>
+          <option value="pf" {% if tipo == 'pf' %}selected{% endif %}>Pessoa Física</option>
+          <option value="pj" {% if tipo == 'pj' %}selected{% endif %}>Pessoa Jurídica</option>
+        </select>
+        <select name="profissao" onchange="this.form.submit()" style="width:100%; height:38px; border-radius:10px; border:1px solid var(--stroke); margin-top:4px;">
+          <option value="">Profissão: Todas</option>
+          {% for prof in profissoes %}
+            <option value="{{ prof }}" {% if profissao_filtro == prof %}selected{% endif %}>{{ prof }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- STATUS MÁQUINA -->
+      <div class="filter-group">
+        <label class="filter-label">Status Máquina</label>
+        <div class="check-list">
+          <label class="check-item"><input type="checkbox" name="status_equip" value="direito" {% if 'direito' in status_equip_selecionados %}checked{% endif %} onchange="this.form.submit()"> Liberado</label>
+          <label class="check-item"><input type="checkbox" name="status_equip" value="vencendo" {% if 'vencendo' in status_equip_selecionados %}checked{% endif %} onchange="this.form.submit()"> A Vencer</label>
+          <label class="check-item"><input type="checkbox" name="status_equip" value="vencido" {% if 'vencido' in status_equip_selecionados %}checked{% endif %} onchange="this.form.submit()"> Vencido</label>
+          <label class="check-item"><input type="checkbox" name="status_equip" value="bloqueado_data_invalida" {% if 'bloqueado_data_invalida' in status_equip_selecionados %}checked{% endif %} onchange="this.form.submit()"> Inválido</label>
+        </div>
+      </div>
+
+      <!-- MODELOS -->
+      <div class="filter-group">
+        <label class="filter-label">Modelos</label>
+        <div class="check-list">
+          {% for eq in lista_equipamentos %}
+            <label class="check-item"><input type="checkbox" name="equipamento" value="{{ eq }}" {% if eq in equipamentos_selecionados %}checked{% endif %} onchange="this.form.submit()"> {{ eq }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- PRODUTOS SITE -->
+      <div class="filter-group">
+        <label class="filter-label">Produtos Site</label>
+        <div class="check-list">
+          {% for prod in lista_produtos_shopify %}
+            <label class="check-item"><input type="checkbox" name="produtos_shopify" value="{{ prod }}" {% if prod in produtos_selecionados %}checked{% endif %} onchange="this.form.submit()"> {{ prod }}</label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- AUDITORIA -->
+      <div class="filter-group">
+        <label class="filter-label">Auditoria</label>
+        <select name="consultado" onchange="this.form.submit()" style="width:100%; height:38px; border-radius:10px; border:1px solid var(--stroke);">
+          <option value="">Consulta: Todos</option>
+          <option value="true" {% if consultado == 'true' %}selected{% endif %}>Consultados</option>
+          <option value="false" {% if consultado == 'false' %}selected{% endif %}>Não Consultados</option>
+        </select>
+        <div style="display:flex; gap:4px; margin-top:4px;">
+          <input type="date" name="data_inicio" value="{{ data_inicio|default:'' }}" onchange="this.form.submit()" style="width:50%; height:38px; border-radius:10px; border:1px solid var(--stroke); font-size:0.75rem;">
+          <input type="date" name="data_fim" value="{{ data_fim|default:'' }}" onchange="this.form.submit()" style="width:50%; height:38px; border-radius:10px; border:1px solid var(--stroke); font-size:0.75rem;">
+        </div>
+      </div>
+
+      <!-- OUTROS -->
+      <div class="filter-group">
+        <label class="filter-label">Outros</label>
+        <input type="number" name="gasto_min" value="{{ gasto_min|default:'' }}" placeholder="Gasto Mín R$" onchange="this.form.submit()" style="width:100%; height:38px; border-radius:10px; border:1px solid var(--stroke);">
+        <label class="check-item" style="margin-top:4px;"><input type="checkbox" name="has_serial_sec" value="true" {% if has_serial_sec == 'true' %}checked{% endif %} onchange="this.form.submit()"> Serial Sec.</label>
+        <a href="{% url 'clientes:painel' %}" style="text-align:center; font-size:0.75rem; color:var(--muted); text-decoration: underline; margin-top: auto;">Limpar Filtros</a>
+      </div>
+
+    </div>
+  </form>
+</section>
+
+{% if view_mode == 'kanban' %}
+  <section class="kanban">
+    {% for item in clientes_render %}
+      <article class="client-card">
+        <div class="client-head">
+          <div class="client-info-left">
+            <h2 class="client-name">{{ item.obj.nome }}</h2>
+            <div class="client-email">{{ item.obj.email|default:"-" }}</div>
+          </div>
+          <span class="doc-badge">{{ item.tipo_doc }}</span>
+        </div>
+        <div class="meta">
+          <div class="meta-box"><small>Telefone</small><div>{{ item.telefone_formatado }}</div></div>
+          <div class="meta-box"><small>Documento</small><div>{{ item.documento }}</div></div>
+          <div class="meta-box" style="background:#f0fdf4;"><small>Orçamentos</small><div>{{ item.orcamentos_count }}</div></div>
+          <div class="meta-box" style="background:#eff6ff;"><small>Máquinas</small><div>{{ item.suportes_count }}</div></div>
+        </div>
+        <a href="{% url 'clientes:detalhe' item.obj.id %}" class="btn-action" style="width:100%;">Ver detalhes</a>
+      </article>
+    {% endfor %}
+  </section>
+{% else %}
+  <div class="table-responsive" style="background:#fff; border-radius:20px; border:1px solid var(--stroke); overflow:hidden;">
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background:#f8fafc; border-bottom:1px solid var(--stroke);">
+          <th style="padding:16px; text-align:left;">Cliente</th>
+          <th style="padding:16px; text-align:left;">Documento</th>
+          <th style="padding:16px; text-align:center;">Máquinas</th>
+          <th style="padding:16px; text-align:right;">Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in clientes_render %}
+          <tr style="border-bottom:1px solid #f1f5f9;">
+            <td style="padding:16px;"><strong>{{ item.obj.nome }}</strong></td>
+            <td style="padding:16px;">{{ item.documento }}</td>
+            <td style="padding:16px; text-align:center;">{{ item.suportes_count }}</td>
+            <td style="padding:16px; text-align:right;"><a href="{% url 'clientes:detalhe' item.obj.id %}" class="btn-action" style="height:34px; font-size:0.8rem;">Ver</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+<div class="pagination">
+  {% if page_obj.has_previous %}
+    <a href="?page=1&{{ querystring }}">«</a>
+    <a href="?page={{ page_obj.previous_page_number }}&{{ querystring }}">‹</a>
+  {% endif %}
+  {% for num in page_obj.paginator.page_range %}
+    {% if num == page_obj.number %}<span class="current">{{ num }}</span>
+    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}<a href="?page={{ num }}&{{ querystring }}">{{ num }}</a>
+    {% endif %}
+  {% endfor %}
+  {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&{{ querystring }}">›</a>
+    <a href="?page={{ page_obj.paginator.num_pages }}&{{ querystring }}">»</a>
+  {% endif %}
+</div>
+{% endblock %}

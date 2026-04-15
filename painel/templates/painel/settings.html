@@ -1,0 +1,29 @@
+{% extends 'painel/base.html' %}
+{% load static %}
+{% block title %}EAATA – Settings{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'painel/css/settings.css' %}">
+{% endblock %}
+{% block content %}
+  <h2 style="margin-top:0;">Configurações</h2>
+  <div class="panel">
+    <form method="post" class="settings-form">
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="row">
+          <label for="id_{{ field.name }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}
+            <div class="msg-error">{{ field.errors|striptags }}</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+      {% if messages %}
+        {% for m in messages %}
+          <div class="msg-ok">{{ m }}</div>
+        {% endfor %}
+      {% endif %}
+      <button class="btn-primary" type="submit">Salvar</button>
+    </form>
+  </div>
+{% endblock %}

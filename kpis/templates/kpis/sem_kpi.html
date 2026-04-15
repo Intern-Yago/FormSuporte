@@ -1,0 +1,29 @@
+{% extends 'painel/base.html' %}
+{% load static %}
+
+{% block title %}EAATA – KPIs Indisponíveis{% endblock %}
+
+{% block content %}
+<div class="eaata-app" style="min-height: 80vh; display: flex; align-items: center; justify-content: center; background: transparent;">
+  <main class="eaata-content" style="text-align: center; max-width: 500px;">
+    
+    <div style="font-size: 48px; margin-bottom: 20px;">📊</div>
+    <h2 style="margin-bottom: 10px;">Área sem Indicadores</h2>
+    
+    <p style="color: var(--muted); line-height: 1.6;">
+        O setor de <strong>{{ setor_ativo|default:"sua conta"|title }}</strong> ainda não possui um painel de KPIs configurado no sistema.
+    </p>
+
+    {% if is_master %}
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--stroke);">
+            <p style="font-size: 13px; color: var(--muted); margin-bottom: 10px;">Como administrador, você pode visualizar outros setores:</p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <a href="?setor=suporte" class="btn" style="padding: 8px 16px; background: var(--bg-panel); border: 1px solid var(--stroke); border-radius: 6px; color: var(--text); text-decoration: none;">Suporte</a>
+                <a href="?setor=comercial" class="btn" style="padding: 8px 16px; background: var(--bg-panel); border: 1px solid var(--stroke); border-radius: 6px; color: var(--text); text-decoration: none;">Comercial</a>
+            </div>
+        </div>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}

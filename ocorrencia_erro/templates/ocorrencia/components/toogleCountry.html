@@ -1,0 +1,86 @@
+{% load static %}
+
+<style>
+/* Switch settings */
+.ui-switch {
+  --switch-bg: rgb(135, 150, 165);
+  --switch-width: 48px;
+  --switch-height: 20px;
+  --circle-diameter: 32px;
+  --circle-bg: rgb(232, 89, 15);
+  --circle-inset: calc((var(--circle-diameter) - var(--switch-height)) / 2);
+}
+
+.ui-switch input { display: none; }
+
+.slider {
+  width: var(--switch-width);
+  height: var(--switch-height);
+  background: var(--switch-bg);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+}
+
+.slider .circle {
+  top: calc(var(--circle-inset) * -1);
+  left: 0;
+  width: var(--circle-diameter);
+  height: var(--circle-diameter);
+  position: absolute;
+  border-radius: inherit;
+  background-image: url("{% static 'ocorrencia/images/flags/br.png' %}");
+  background-color: rgb(0, 56, 146);
+  background-repeat: no-repeat;
+  background-position: center center;
+  transition: left 150ms, transform 150ms;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-switch input:checked + .slider .circle {
+  left: calc(100% - var(--circle-diameter));
+  background-image: url("{% static 'ocorrencia/images/flags/es.png' %}");
+  
+  
+  background-color:rgb(232, 89, 15);
+}
+</style>
+
+<div style="position: relative;">
+    <form action="{% url 'set_language' %}" method="post" id="language-toggle-form">
+        {% csrf_token %}
+        <input name="next" type="hidden" value="{{ request.path }}">
+        <input type="hidden" name="language" value="{% if request.LANGUAGE_CODE in 'pt pt-br' %}pt-br{% else %}es{% endif %}">
+
+        <label class="ui-switch">
+            <input type="checkbox" {% if request.LANGUAGE_CODE in 'es' %}checked{% endif %}>
+            <div class="slider">
+                <div class="circle"></div>
+            </div>
+        </label>
+    </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.querySelector(".ui-switch input");
+    const form = document.getElementById("language-toggle-form");
+
+    toggle.addEventListener("change", () => {
+      const langInput = form.querySelector("input[name='language']");
+      const nextInput = form.querySelector("input[name='next']");
+      
+      langInput.value = toggle.checked ? "es" : "pt-br";
+      
+      // Força o 'next' a ser o caminho atual, removendo prefixos de idioma manuais 
+      // se o Django estiver se confundindo no redirect automático
+      nextInput.value = window.location.pathname.replace(/^\/(es|pt-br|pt)\//, '/');
+
+      form.submit();
+  });
+});
+
+</script>
+

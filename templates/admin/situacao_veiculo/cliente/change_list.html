@@ -1,0 +1,116 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools %}
+  <li>
+    <a href="{{ export_xlsx_url }}?{{ request.GET.urlencode }}">Exportar XLSX</a>
+  </li>
+  {{ block.super }}
+{% endblock %}
+
+{% block search %}
+  <div style="
+    margin: 12px 0 16px 0;
+    padding: 14px 16px;
+    background: var(--body-bg, #fff);
+    border: 1px solid var(--hairline-color, #ddd);
+    border-radius: 8px;
+  ">
+    <form method="get" id="periodo-filtros-form">
+      {% for key, value in request.GET.items %}
+        {% if key not in 'ativacao_de,ativacao_ate,vencimento_de,vencimento_ate,e,p,o,ot,_changelist_filters' %}
+          <input type="hidden" name="{{ key }}" value="{{ value }}">
+        {% endif %}
+      {% endfor %}
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:16px;">
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <label for="id_ativacao_de" style="font-weight:600;">Ativação de</label>
+          <input
+            type="date"
+            id="id_ativacao_de"
+            name="ativacao_de"
+            value="{{ ativacao_de }}"
+            style="width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid var(--border-color, #ccc); border-radius:6px;"
+          >
+
+          <div id="wrap_ativacao_ate" style="{% if not ativacao_de %}display:none;{% endif %}">
+            <label for="id_ativacao_ate" style="display:block; margin-bottom:6px; font-weight:600;">Ativação até</label>
+            <input
+              type="date"
+              id="id_ativacao_ate"
+              name="ativacao_ate"
+              value="{{ ativacao_ate }}"
+              style="width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid var(--border-color, #ccc); border-radius:6px;"
+            >
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <label for="id_vencimento_de" style="font-weight:600;">Vencimento de</label>
+          <input
+            type="date"
+            id="id_vencimento_de"
+            name="vencimento_de"
+            value="{{ vencimento_de }}"
+            style="width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid var(--border-color, #ccc); border-radius:6px;"
+          >
+
+          <div id="wrap_vencimento_ate" style="{% if not vencimento_de %}display:none;{% endif %}">
+            <label for="id_vencimento_ate" style="display:block; margin-bottom:6px; font-weight:600;">Vencimento até</label>
+            <input
+              type="date"
+              id="id_vencimento_ate"
+              name="vencimento_ate"
+              value="{{ vencimento_ate }}"
+              style="width:100%; box-sizing:border-box; padding:8px 10px; border:1px solid var(--border-color, #ccc); border-radius:6px;"
+            >
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px;">
+        <button type="submit" class="button">Aplicar filtros</button>
+        <a href="?" class="button">Limpar</a>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    (function () {
+      const ativacaoDe = document.getElementById("id_ativacao_de");
+      const ativacaoAteWrap = document.getElementById("wrap_ativacao_ate");
+      const ativacaoAte = document.getElementById("id_ativacao_ate");
+
+      const vencimentoDe = document.getElementById("id_vencimento_de");
+      const vencimentoAteWrap = document.getElementById("wrap_vencimento_ate");
+      const vencimentoAte = document.getElementById("id_vencimento_ate");
+
+      function toggleCampoAte(inputDe, wrapAte, inputAte) {
+        if (!inputDe || !wrapAte || !inputAte) return;
+
+        if (inputDe.value) {
+          wrapAte.style.display = "";
+        } else {
+          wrapAte.style.display = "none";
+          inputAte.value = "";
+        }
+      }
+
+      if (ativacaoDe) {
+        ativacaoDe.addEventListener("input", function () {
+          toggleCampoAte(ativacaoDe, ativacaoAteWrap, ativacaoAte);
+        });
+        toggleCampoAte(ativacaoDe, ativacaoAteWrap, ativacaoAte);
+      }
+
+      if (vencimentoDe) {
+        vencimentoDe.addEventListener("input", function () {
+          toggleCampoAte(vencimentoDe, vencimentoAteWrap, vencimentoAte);
+        });
+        toggleCampoAte(vencimentoDe, vencimentoAteWrap, vencimentoAte);
+      }
+    })();
+  </script>
+
+  {{ block.super }}
+{% endblock %}

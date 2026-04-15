@@ -1,0 +1,76 @@
+<div class="modal fade" id="addModal">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0">
+
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold">Registrar Novo Serial</h5>
+        <button class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <form id="serialForm">
+          {% csrf_token %}
+
+          <div class="row g-3">
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Série VCI *</label>
+              <input name="numero_vci" class="form-control" required>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Série Tablet</label>
+              <input name="numero_tablet" class="form-control">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Série Prog</label>
+              <input name="numero_prog" class="form-control">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Cliente *</label>
+              <input name="cliente" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Telefone</label>
+              <input name="telefone" class="form-control">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Email *</label>
+              <input type="email" name="email" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Pedido *</label>
+              <input name="pedido" class="form-control" required>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Data de Ativação</label>
+              <input type="date" name="data_ativacao" class="form-control">
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label fw-semibold">Fotos (múltiplas)</label>
+              <input type="file" name="fotos" multiple class="form-control">
+            </div>
+
+          </div>
+        </form>
+
+      </div>
+
+      <div class="modal-footer bg-light d-flex justify-content-between">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button onclick="submitForm()" class="btn btn-primary px-4 fw-semibold">
+          Salvar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

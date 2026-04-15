@@ -1,0 +1,359 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Criar Usuário Responsável</title>
+  <style>
+    :root {
+      --primary: #0056b3;
+      --primary-light: #3a7bc8;
+      --secondary: #0a2e5a;
+      --dark: #1a1a1a;
+      --light: #ffffff;
+      --gray: #f5f7fa;
+      --text: #333333;
+      --text-light: #6b7280;
+      --border-color: #dee2e6;
+      --hover-bg: #e9ecef;
+      --success: #198754;
+      --error: #dc3545;
+      --warning: #ffc107;
+      --info: #0dcaf0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    body {
+      background-color: var(--gray);
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .login-form {
+      background: var(--light);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 600px;
+      border: 1px solid var(--border-color);
+    }
+    .login-form h2 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    .form-group label {
+      margin-bottom: 1px;
+      display: block;
+      color: var(--text);
+      font-weight: 500;
+    }
+    .login-form input[type="text"],
+    .login-form input[type="password"] {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--gray);
+      color: var(--text);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    .login-form input[type="text"]:focus,
+    .login-form input[type="password"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      background-color: var(--light);
+      box-shadow: 0 0 0 2px rgba(0, 86, 179, 0.2);
+    }
+    .login-form input[type="submit"] {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: var(--primary);
+      color: var(--light);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-size: 1rem;
+      font-weight: 500;
+      margin-top: 1rem;
+    }
+    .login-form input[type="submit"]:hover {
+      background-color: var(--primary-light);
+    }
+    /* Sistema de Mensagens */
+    .messages {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 1.5rem;
+    }
+    .messages li {
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.75rem;
+      color: var(--light);
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+    }
+    .messages li:before {
+      content: "";
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: 10px;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+    .messages li.success {
+      background-color: var(--success);
+    }
+    .messages li.success:before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
+    }
+    .messages li.error {
+      background-color: var(--error);
+    }
+    .messages li.error:before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'/%3E%3C/svg%3E");
+    }
+    .messages li.warning {
+      background-color: var(--warning);
+      color: var(--dark);
+    }
+    .messages li.warning:before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z'/%3E%3C/svg%3E");
+    }
+    /* Checkbox Group */
+    .checkbox-group {
+      margin-bottom: 1rem;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      padding: 0.75rem;
+      border-radius: 8px;
+      background: var(--gray);
+    }
+    .checkbox-group-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .checkbox-group-header strong {
+      color: var(--text);
+    }
+    .selected-count {
+      color: var(--primary);
+      font-size: 0.8rem;
+      background: rgba(0, 86, 179, 0.1);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .checkbox-item:last-child {
+      border-bottom: none;
+    }
+    .checkbox-item label {
+      margin-left: 0.5rem;
+      cursor: pointer;
+      color: var(--text);
+      flex-grow: 1;
+    }
+    .checkbox-item input[type="checkbox"] {
+      cursor: pointer;
+    }
+    /* Animações */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Acessibilidade */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+    #actions_log {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 16px;
+      z-index: 1000;
+    }
+
+    .buttons_log {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px var(--shadow-light);
+      transition: background-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      letter-spacing: 0.03em;
+    }
+
+    .buttons_log:hover {
+      background-color: var(--primary-dark);
+      box-shadow: 0 4px 14px var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .buttons_log:focus-visible {
+      outline: 2px solid var(--primary-light);
+      outline-offset: 2px;
+    }
+
+    .logout { background-color: #b00020; box-shadow: 0 2px 6px rgba(176, 0, 32, 0.2); }
+    .logout:hover { background-color: #7a0015; box-shadow: 0 4px 14px rgba(176, 0, 32, 0.4); }
+    .redirecionar { background-color: #525252ff; box-shadow: 0 2px 6px rgba(176, 0, 32, 0.2); }
+    .redirecionar:hover { background-color: #3f3f3fff; box-shadow: 0 2px 6px rgba(176, 0, 32, 0.2); }
+    .radio-group {
+      margin-bottom: 1rem;
+      padding: 0.75rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--gray);
+    }
+    
+    .radio-group-header {
+      margin-bottom: 0.5rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+    
+    .radio-options {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .radio-item {
+      display: flex;
+      align-items: center;
+    }
+    
+    .radio-item label {
+      margin-left: 0.5rem;
+      cursor: pointer;
+      color: var(--text);
+    }
+    
+    .radio-item input[type="radio"] {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="actions_log">
+    <button class="logout buttons_log" onclick="logOut()">{% trans "Logout" %}</button> <button class="redirecionar buttons_log" onclick="redirecionar()">{% trans "Voltar para tabela" %}</button> </div>
+  <div class="login-form" role="main" aria-label="{% trans 'Formulário para criação de usuário responsável' %}"> <h2>{% trans "Criar Usuário Responsável" %}</h2> {% if messages %}
+    {% comment %} <ul class="messages">
+      {% for message in messages %}
+        <li class="{{ message.tags }}">
+          {{ message }}
+        </li>
+      {% endfor %}
+    </ul> {% endcomment %}
+    {% endif %}
+
+    <form action="{% url 'criar_usuario' %}" method="POST" novalidate>
+      {% csrf_token %}
+      
+      <div class="form-group">
+        <label for="username">{% trans "Nome de usuário" %}</label> <input type="text" id="username" name="username" placeholder="{% trans 'Digite o nome de usuário' %}" required 
+               aria-required="true" aria-describedby="username-help">
+        <span id="username-help" class="sr-only">{% trans "Campo obrigatório" %}</span> </div>
+      
+      <div class="form-group">
+        <label for="password">{% trans "Senha" %}</label> <input type="password" id="password" name="password" placeholder="{% trans 'Digite a senha' %}" required 
+               aria-required="true" aria-describedby="password-help">
+        <span id="password-help" class="sr-only">{% trans "Campo obrigatório" %}</span> </div>
+
+      <div class="form-group">
+        <div class="radio-group">
+          <div class="radio-group-header">
+            <strong>{% trans "Tipo de usuário:" %}</strong> </div>
+          <div class="radio-options">
+            <div class="radio-item">
+              <input type="radio" id="tipo-responsavel" name="tipo_usuario" value="responsavel" checked>
+              <label for="tipo-responsavel">{% trans "Responsável" %}</label> </div>
+            <div class="radio-item">
+              <input type="radio" id="tipo-reporte" name="tipo_usuario" value="reporte">
+              <label for="tipo-reporte">{% trans "Reporte" %}</label> </div>
+            <div class="radio-item">
+              <input type="radio" id="tipo-semi-admin" name="tipo_usuario" value="semi_admin">
+              <label for="tipo-semi-admin">{% trans "Semi Admin" %}</label> </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="checkbox-group">
+          <div class="checkbox-group-header">
+            <strong>{% trans "Países responsáveis:" %}</strong> <span class="selected-count" id="selected-count">0 {% trans "selecionados" %}</span> </div>
+          {% for pais in paises %}
+            <div class="checkbox-item">
+              <input type="checkbox" id="pais-{{ pais.id }}" name="paises_responsavel" value="{{ pais.id }}">
+              <label for="pais-{{ pais.id }}">{{ pais.name }}</label>
+            </div>
+          {% empty %}
+            <p>{% trans "Nenhum país disponível." %}</p> {% endfor %}
+        </div>
+      </div>
+
+      <input type="submit" value="{% trans 'Criar usuário' %}"> </form>
+  </div>
+
+  <script>
+    function redirecionar() { window.location.href = '/'; }
+    function logOut() { window.location.href = '/logout'; }
+    // Atualizar contador de países selecionados
+    const checkboxes = document.querySelectorAll('input[name="paises_responsavel"]');
+    const counter = document.getElementById('selected-count');
+    
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', updateCounter);
+    });
+    
+    function updateCounter() {
+      const selected = document.querySelectorAll('input[name="paises_responsavel"]:checked').length;
+      counter.textContent = `${selected} selecionado${selected !== 1 ? 's' : ''}`;
+    }
+    
+    // Inicializar contador
+    updateCounter();
+  </script>
+</body>
+</html>

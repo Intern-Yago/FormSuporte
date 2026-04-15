@@ -1,0 +1,332 @@
+{% extends 'painel/base.html' %}
+{% load static %}
+{% block title %}EAATA – Criar Usuário{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'painel/css/user_create.css' %}">
+{% endblock %}
+
+{% block content %}
+<h2 style="margin-top:0;">Criar Usuário</h2>
+
+<div class="panel">
+  {% if error %}<div class="msg-error">{{ error }}</div>{% endif %}
+  {% if messages %}
+    {% for m in messages %}<div class="msg-ok">{{ m }}</div>{% endfor %}
+  {% endif %}
+  {% if user_role == 'gestor' and user_setor == 'suporte' %}
+    <div class="legacy-box">
+      <p class="legacy-title">Criar Usuário (Suporte)</p>
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="suporte_legacy" />
+
+        <div class="form-grid">
+          <div class="row">
+            <label for="nome">Nome de usuário</label>
+            <input type="text" id="nome" name="nome" placeholder="Digite o nome de usuário" required>
+          </div>
+
+          <div class="row">
+            <label for="email">E-mail (login)</label>
+            <input type="text" id="email" name="email" placeholder="ex: tecnico@eaata.pro" required>
+          </div>
+          
+          <div class="row">
+            <label for="senha">Senha</label>
+            <input type="senha" id="senha" name="senha" placeholder="Digite a senha" required>
+          </div>
+        </div>
+
+        <div class="radio-group">
+          <div style="font-weight:700; margin-bottom:8px;">Tipo de usuário (Técnicos)</div>
+          <div class="radio-options">
+            <div class="radio-item">
+              <input type="radio" id="tipo-responsavel" name="tipo_usuario" value="responsavel" checked>
+              <label for="tipo-responsavel">Responsável</label>
+            </div>
+
+            <div class="radio-item">
+              <input type="radio" id="tipo-reporte" name="tipo_usuario" value="reporte">
+              <label for="tipo-reporte">Reporte</label>
+            </div>
+
+            <div class="radio-item">
+              {# mantém o value legado "semi_admin" #}
+              <input type="radio" id="tipo-semi-admin" name="tipo_usuario" value="semi_admin">
+              <label for="tipo-semi-admin">Sub Gestor</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <div class="checkbox-group-header">
+            <strong>Países responsáveis:</strong>
+            <span class="selected-count" id="selected-count">0 selecionados</span>
+          </div>
+
+          {% for pais in paises %}
+            <div class="checkbox-item">
+              <input type="checkbox" id="pais-{{ pais.id }}" name="paises_responsavel" value="{{ pais.id }}">
+              <label for="pais-{{ pais.id }}">{{ pais.name }}</label>
+            </div>
+          {% empty %}
+            <p>Nenhum país disponível.</p>
+          {% endfor %}
+        </div>
+
+        <button class="btn-primary" type="submit">Criar usuário</button>
+      </form>
+    </div>
+
+    <script>
+      (function(){
+        const checkboxes = document.querySelectorAll('input[name="paises_responsavel"]');
+        const counter = document.getElementById('selected-count');
+        if(!counter) return;
+
+        function updateCounter() {
+          const selected = document.querySelectorAll('input[name="paises_responsavel"]:checked').length;
+          counter.textContent = `${selected} selecionado${selected !== 1 ? 's' : ''}`;
+        }
+        checkboxes.forEach(cb => cb.addEventListener('change', updateCounter));
+        updateCounter();
+      })();
+    </script>
+
+  {% else %}
+
+    <form method="post" id="main-create-form">
+      {% csrf_token %}
+
+      <div class="form-grid">
+        <div class="row">
+          <label>Nome</label>
+          <input type="text" name="nome" placeholder="Nome completo" required />
+        </div>
+
+        <div class="row">
+          <label for="email">E-mail (login)</label>
+          <input type="text" id="email" name="email" placeholder="ex: tecnico@eaata.pro" required>
+        </div>
+
+        <div class="row">
+          <label>Senha</label>
+          <input type="senha" name="senha" required />
+        </div>
+
+        <div class="row">
+          <label>CPF/CNPJ</label>
+          <input type="text" name="cpf_cnpj" placeholder="Somente números" />
+        </div>
+
+        <div class="row">
+          <label>Contato</label>
+          <input type="text" name="contato" placeholder="(00) 00000-0000" />
+        </div>
+
+        <div class="row">
+          <label>Área (responsabilidade)</label>
+          <input type="text" id="area-text" name="area" placeholder="Ex.: Região, carteira, squad..." />
+          <select id="area-select" name="area" style="display:none;" disabled>
+            <option value="">Selecione a categoria...</option>
+            {% for v, lbl in areas_suporte %}
+              <option value="{{ v }}">{{ lbl }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        {% if can_choose_role_setor %}
+          <div class="row">
+            <label>Hierarquia</label>
+            <select name="role" id="role-select" required>
+              {% for v,lbl in roles %}
+                <option value="{{ v }}">{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="row" id="setor-row">
+            <label>Setor</label>
+            <select name="setor" id="setor-select">
+              {% for v,lbl in setores %}
+                <option value="{{ v }}">{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row" id="grupo-comercial-row" style="display:none;">
+            <label>Grupo comercial</label>
+            <select name="grupo_comercial" id="grupo-comercial-select">
+              <option value="">Selecione</option>
+              {% for v,lbl in grupos_comerciais %}
+                <option value="{{ v }}">{{ lbl }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        {% else %}
+          <input type="hidden" name="role" value="colaborador" />
+          <input type="hidden" name="setor" value="{{ user_setor }}" />
+          <div class="row">
+            <label>Hierarquia</label>
+            <input type="text" value="Colaborador" disabled />
+          </div>
+          <div class="row">
+            <label>Setor</label>
+            <input type="text" value="{{ user_setor|default:'(sem setor)' }}" disabled />
+          </div>
+        {% endif %}
+      </div>
+
+      {# ====== extras do suporte (admin criando colaborador do suporte) ====== #}
+      <div class="legacy-box" id="suporte-extras" style="display:none;">
+        <p class="legacy-title">Tipo de usuário (Técnicos)</p>
+
+        <div class="radio-group">
+          <div class="radio-options">
+            <div class="radio-item">
+              <input type="radio" id="extra-tipo-responsavel" name="tipo_usuario" value="responsavel" checked>
+              <label for="extra-tipo-responsavel">Responsável</label>
+            </div>
+
+            <div class="radio-item">
+              <input type="radio" id="extra-tipo-reporte" name="tipo_usuario" value="reporte">
+              <label for="extra-tipo-reporte">Reporte</label>
+            </div>
+
+            <div class="radio-item">
+              <input type="radio" id="extra-tipo-semi-admin" name="tipo_usuario" value="semi_admin">
+              <label for="extra-tipo-semi-admin">Sub Gestor</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <div class="checkbox-group-header">
+            <strong>Países responsáveis:</strong>
+            <span class="selected-count" id="selected-count-extras">0 selecionados</span>
+          </div>
+
+          {% for pais in paises %}
+            <div class="checkbox-item">
+              <input type="checkbox" id="extra-pais-{{ pais.id }}" name="paises_responsavel" value="{{ pais.id }}">
+              <label for="extra-pais-{{ pais.id }}">{{ pais.name }}</label>
+            </div>
+          {% empty %}
+            <p>Nenhum país disponível.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <button class="btn-primary" type="submit">Salvar</button>
+    </form>
+
+    <script>
+      (function(){
+        const roleSel = document.getElementById('role-select');
+        const setorSel = document.getElementById('setor-select');
+        const setorRow = document.getElementById('setor-row');
+
+        const suporteExtras = document.getElementById('suporte-extras');
+        const counter = document.getElementById('selected-count-extras');
+
+        const grupoComercialRow = document.getElementById('grupo-comercial-row');
+        const grupoComercialSelect = document.getElementById('grupo-comercial-select');
+
+        function toggleSetorRequired(){
+          if (!roleSel || !setorRow || !setorSel) return;
+          const r = roleSel.value;
+          const needSetor = !(r === 'dono' || r === 'diretor');
+          setorRow.style.display = needSetor ? '' : 'none';
+          setorSel.required = needSetor;
+        }
+
+        function toggleSuporteExtras(){
+          if(!suporteExtras) return;
+
+          const roleVal = roleSel ? roleSel.value : "colaborador";
+          const setorVal = setorSel ? setorSel.value : "{{ user_setor|default:'' }}";
+
+          const show = (roleVal === "colaborador" && setorVal === "suporte");
+          suporteExtras.style.display = show ? "" : "none";
+
+          if (!counter) return;
+          const cbs = suporteExtras.querySelectorAll('input[name="paises_responsavel"]');
+          function update(){
+            const selected = suporteExtras.querySelectorAll('input[name="paises_responsavel"]:checked').length;
+            counter.textContent = `${selected} selecionado${selected !== 1 ? 's' : ''}`;
+          }
+          cbs.forEach(cb => cb.addEventListener('change', update));
+          update();
+        }
+
+        function toggleGrupoComercial(){
+          if(!grupoComercialRow || !grupoComercialSelect) return;
+
+          const roleVal = roleSel ? roleSel.value : "colaborador";
+          const setorVal = setorSel ? setorSel.value : "{{ user_setor|default:'' }}";
+
+          const show = (roleVal === "colaborador" && setorVal === "comercial");
+          grupoComercialRow.style.display = show ? "" : "none";
+          grupoComercialSelect.required = show;
+
+          if (!show) {
+            grupoComercialSelect.value = "";
+          }
+        }
+
+        if (roleSel) {
+          roleSel.addEventListener('change', function(){
+            toggleSetorRequired();
+            toggleSuporteExtras();
+            toggleGrupoComercial();
+          });
+        }
+
+        if (setorSel) {
+          setorSel.addEventListener('change', function(){
+            toggleSuporteExtras();
+            toggleGrupoComercial();
+          });
+        }
+
+        toggleSetorRequired();
+        toggleSuporteExtras();
+        toggleGrupoComercial();
+      })();
+      const areaText = document.getElementById('area-text');
+      const areaSelect = document.getElementById('area-select');
+
+      // Adicione esta nova função:
+      function toggleAreaInput(){
+          const setorVal = setorSel ? setorSel.value : "{{ user_setor|default:'' }}";
+          
+          if (setorVal === "suporte") {
+            if (areaText) { areaText.style.display = 'none'; areaText.disabled = true; }
+            // Tiramos o areaSelect.required = true daqui!
+            if (areaSelect) { areaSelect.style.display = ''; areaSelect.disabled = false; areaSelect.required = false; }
+          } else {
+            if (areaText) { areaText.style.display = ''; areaText.disabled = false; }
+            if (areaSelect) { areaSelect.style.display = 'none'; areaSelect.disabled = true; areaSelect.required = false; }
+          }
+        }
+
+      // Modifique o listener do setorSel para chamar ela também:
+      if (setorSel) {
+        setorSel.addEventListener('change', function(){
+          toggleSuporteExtras();
+          toggleGrupoComercial();
+          toggleAreaInput(); // Chama a nova função
+        });
+      }
+
+      // Chame a função no final do script para configurar na abertura da tela:
+      toggleSetorRequired();
+      toggleSuporteExtras();
+      toggleGrupoComercial();
+      toggleAreaInput(); // Chama no load inicial
+    </script>
+
+  {% endif %}
+</div>
+{% endblock %}

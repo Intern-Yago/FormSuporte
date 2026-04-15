@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>README - Deploy Automático</title>
+</head>
+<body>
+
+<h1>Deploy Automático para VPS via GitHub Actions</h1>
+
+<p>Este projeto está configurado para atualizar automaticamente a aplicação na VPS sempre que houver um push no branch <strong>main</strong> do GitHub. O deploy inclui atualização de código, instalação de dependências, migrações do Django, coleta de arquivos estáticos e reinício do Gunicorn.</p>
+
+<hr>
+
+<h2>1️⃣ Objetivo</h2>
+<p>Automatizar o deploy da aplicação para a VPS, eliminando a necessidade de acessar manualmente o servidor após cada alteração no código.</p>
+
+<hr>
+
+<h2>2️⃣ Pré-requisitos</h2>
+<ul>
+  <li>VPS com usuário <code>ubuntu</code> (ou outro usuário com permissão sudo)</li>
+  <li>Projeto Django com <code>virtualenv</code> configurado</li>
+  <li>Gunicorn e Nginx instalados e configurados</li>
+  <li>Acesso ao GitHub com repositório remoto configurado</li>
+</ul>
+
+<hr>
+
+<h2>3️⃣ Gerar chave SSH para deploy</h2>
+<p><strong>Por que:</strong> o GitHub Actions precisa se conectar via SSH à VPS sem senha, de forma segura.</p>
+
+<pre><code>ssh-keygen -t ed25519 -C "deploy@vps"</code></pre>
+
+<p>Pressione Enter para usar o local padrão e deixe a passphrase em branco.</p>
+
+<p>Arquivos gerados:</p>
+<ul>
+  <li><code>~/.ssh/id_ed25519</code> → chave privada</li>
+  <li><code>~/.ssh/id_ed25519.pub</code> → chave pública</li>
+</ul>
+
+<hr>
+
+<h2>4️⃣ Configurar a VPS para aceitar a chave</h2>
+<pre><code>mkdir -p ~/.ssh
+nano ~/.ssh/authorized_keys
+# Cole a chave pública gerada
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys</code></pre>
+
+<p>Teste a conexão:</p>
+<pre><code>ssh -i ~/.ssh/id_ed25519 ubuntu@SEU_IP</code></pre>
+
+<hr>
+
+<h2>5️⃣ Adicionar chave privada no GitHub</h2>
+<p>No repositório GitHub:</p>
+<ul>
+  <li>Settings → Secrets → Actions → New repository secret</li>
+  <li>Nome: <code>VPS_SSH_KEY</code></li>
+  <li>Valor: cole o conteúdo completo da chave privada <code>~/.ssh/id_ed25519</code></li>
+</ul>
+
+<p>Também adicione:</p>
+<ul>
+  <li><code>VPS_HOST</code> → IP ou domínio da VPS</li>
+  <li><code>VPS_USER</code> → <code>ubuntu</code></li>
+</ul>
+
+<hr>
+
+<h2>6️⃣ Workflow do GitHub Actions</h2>
+<pre><code>name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/Sistema_Suporte
+            git fetch origin main
+            git reset --hard origin/main
+            source venv/bin/activate
+            pip install -r requirements.txt
+            python manage.py migrate --noinput
+            python manage.py collectstatic --noinput
+            sudo systemctl restart gunicorn</code></pre>
+
+<h3>Explicação do workflow</h3>
+<ul>
+  <li><strong>on: push</strong> → dispara quando há push no branch <code>main</code></li>
+  <li><strong>runs-on: ubuntu-latest</strong> → roda em uma VM Ubuntu</li>
+  <li><strong>appleboy/ssh-action</strong> → conecta na VPS via SSH e executa comandos</li>
+  <li>Script executado na VPS:
+    <ol>
+      <li>Navega até a pasta do projeto</li>
+      <li>Atualiza o código com <code>git fetch</code> e <code>reset --hard</code></li>
+      <li>Ativa o virtualenv</li>
+      <li>Instala dependências do <code>requirements.txt</code></li>
+      <li>Aplica migrações do Django</li>
+      <li>Coleta arquivos estáticos</li>
+      <li>Reinicia o Gunicorn</li>
+    </ol>
+  </li>
+</ul>
+
+<hr>
+
+<h2>7️⃣ Testar o deploy</h2>
+<p>Faça alterações localmente:</p>
+<pre><code>git add .
+git commit -m "Teste deploy automático"
+git push origin main</code></pre>
+
+<p>No GitHub, vá em <strong>Actions → Deploy to VPS</strong> e verifique o log de execução.</p>
+
+<hr>
+
+<h2>8️⃣ Logs na VPS</h2>
+<p>Gunicorn:</p>
+<pre><code>sudo journalctl -u gunicorn -f</code></pre>
+
+<p>Nginx:</p>
+<pre><code>sudo tail -f /var/log/nginx/error.log
+sudo tail -f /var/log/nginx/access.log</code></pre>
+
+<hr>
+
+<h2>✅ Conclusão</h2>
+<p>Com essa configuração, qualquer push no branch <code>main</code> atualiza automaticamente sua aplicação na VPS, mantendo seu deploy sempre sincronizado com o GitHub sem precisar acessar o servidor manualmente.</p>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% if not ID %}
+    {% with ID=name %}
+    <th data-column="{{ID}}" style="cursor:pointer; position:sticky; top:0; z-index:10; border-spacing:0; border:none; padding:15px 10px;">
+        {{name}}
+        {%if checbox != 'false'%}
+            <span class="filter-icon">▼</span>
+            {% if ID == "finished" %}
+                <div class="filter-box filter-finalizado" id="filter-box-{{ID}}" style="left:-120px;"></div>
+            {% else %}
+                <div class="filter-box" id="filter-box-{{ID}}"></div>
+            {% endif %}
+        {%endif%}
+    </th>
+    {% endwith %}
+{%else%}
+    <th data-column="{{ID}}" style="cursor:pointer;position:sticky; top:0; z-index:10; border-spacing:0; border:none; padding:15px 10px;">
+        {{name}}
+        {%if checbox != 'false'%}
+            <span class="filter-icon">▼</span>
+            {% if ID == "finished" %}
+                <div class="filter-box filter-finalizado" id="filter-box-{{ID}}" style="left:-120px;"></div>
+            {% else %}
+                <div class="filter-box" id="filter-box-{{ID}}"></div>
+{% endif %}
+        {%endif%}
+{% endif %}

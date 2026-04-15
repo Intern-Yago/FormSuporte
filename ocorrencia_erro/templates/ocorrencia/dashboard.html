@@ -1,0 +1,535 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard de Ocorrências | EAATA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+        /* === CORES BASE === */
+        --primary: #0056b3;
+        --primary-light: #3a7bc8;
+        --secondary: #0a2e5a;
+
+        --dark: #1a1a1a;
+        --light: #ffffff;
+        --gray: #f5f7fa;
+
+        --text: #333333;
+        --text-light: #6b7280;
+
+        --border-color: #dee2e6;
+        --hover-bg: #e9ecef;
+
+        /* === STATUS === */
+        --success: #198754;
+        --error: #dc3545;
+        --error-china: #f17815;
+        --warning: #ffc107;
+        --waiting: #3c3c3c;
+
+        --shadow: rgba(0, 0, 0, 0.1);
+        --shadow-hover: rgba(0, 0, 0, 0.15);
+
+        /* === ALIASES (PARA NÃO QUEBRAR O DASHBOARD) === */
+        --eaata-blue: var(--primary);
+        --eaata-dark: var(--dark);
+        --eaata-gray: var(--text-light);
+        --bg-light: var(--gray);
+        --border-light: var(--border-color);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: Inter, Arial, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg-light);
+      color: #111827;
+    }
+
+    .container {
+      padding: 24px;
+      max-width: 1400px;
+      margin: auto;
+    }
+
+    /* ---------- HEADER ---------- */
+    .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+    }
+
+    .header-text h1 {
+    margin: 0;
+    }
+
+    .header-text p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--eaata-gray);
+    }
+    .header-top .btn{
+        width:fit-content;
+    }
+    /* Botão mais discreto para ação de navegação */
+    .btn-outline {
+    background: transparent;
+    color: var(--eaata-dark);
+    border: 1px solid var(--border-light);
+    white-space: nowrap;
+    }
+
+    .btn-outline:hover {
+    background: var(--hover-bg);
+    }
+    @media (max-width: 640px) {
+        .header-top {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .btn-outline {
+            width: 100%;
+            text-align: center;
+        }
+    }
+
+    
+
+    /* ---------- FILTERS ---------- */
+    .filters {
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,.06);
+      margin-bottom: 24px;
+    }
+
+    .filters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .filters label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--eaata-dark);
+    }
+
+    .filters select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-light);
+      font-size: 14px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      align-items: end;
+    }
+
+    .btn {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      text-align: center;
+      border: none;
+      width: 100%;
+    }
+
+    .btn-primary {
+      background: var(--eaata-blue);
+      color: #fff;
+    }
+
+    .btn-dark {
+      background: var(--eaata-dark);
+      color: #fff;
+    }
+
+    /* ---------- GRID TABELA + GRÁFICO ---------- */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 2.3fr 1fr; /* 70% tabela | 30% gráfico */
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    /* ---------- TABLE ---------- */
+    .table-wrapper {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.06);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 600px;
+    }
+
+    thead {
+      background: #f1f5f9;
+    }
+
+    th {
+      padding: 14px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--eaata-dark);
+      border-bottom: 1px solid var(--border-light);
+      text-align: left;
+    }
+
+    td {
+      padding: 12px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    .total {
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 32px;
+      color: var(--eaata-gray);
+    }
+    .row-click {
+        cursor: pointer;
+    }
+
+    .row-click:hover td {
+        background-color: var(--hover-bg);
+    }
+
+
+    /* ---------- GRÁFICO ---------- */
+    .chart-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.06);
+    }
+
+    .chart-card h3 {
+      font-size: 15px;
+      margin-bottom: 10px;
+      color: var(--eaata-dark);
+      text-align: center;
+    }
+
+    .chart-box {
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+    }
+
+    #statusChart {
+      max-height: 260px;
+    }
+
+    /* ---------- RESPONSIVO ---------- */
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .chart-box {
+        max-width: 100%;
+      }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+    <div class="header-top">
+        <div class="header-text">
+            <h1>Dashboard de Ocorrências</h1>
+            <p>Visão geral por responsável, status e país</p>
+        </div>
+
+        <a href="/" class="btn btn-outline">
+            Voltar ao início
+        </a>
+    </div>
+
+
+  <!-- FILTERS -->
+  <form method="get" class="filters">
+    <div class="filters-grid">
+        <div>
+            <label>Data inicial</label>
+            <input type="date" name="data_inicio" value="{{ request.GET.data_inicio }}">
+        </div>
+
+        <div>
+            <label>Data final</label>
+            <input type="date" name="data_fim" value="{{ request.GET.data_fim }}">
+        </div>
+
+        <div>
+            <label>Período rápido</label>
+            <select name="periodo">
+                <option value="" {% if not request.GET.periodo %}selected{% endif %}>
+                    Personalizado
+                </option>
+                <option value="semanal" {% if request.GET.periodo == "semanal" %}selected{% endif %}>
+                    Semanal
+                </option>
+                <option value="mensal" {% if request.GET.periodo == "mensal" %}selected{% endif %}>
+                    Mensal
+                </option>
+                <option value="anual" {% if request.GET.periodo == "anual" %}selected{% endif %}>
+                    Anual
+                </option>
+            </select>
+        </div>
+
+      <div>
+        <label>Responsável</label>
+        <select name="responsible">
+          <option value="">Todos</option>
+          {% for r in responsaveis %}
+            <option value="{{ r }}" {% if request.GET.responsible == r %}selected{% endif %}>
+              {{ r }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label>Status</label>
+        <select name="status">
+          <option value="">Todos</option>
+          {% for value, label in status_list %}
+            <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label>País</label>
+        <select name="country">
+          <option value="">Todos</option>
+          {% for pais in paises_permitidos %}
+            <option value="{{ pais.id }}" {% if request.GET.country == pais.id|stringformat:"s" %}selected{% endif %}>
+              {{ pais.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="buttons">
+        <button type="submit" class="btn btn-primary">
+            Filtrar
+        </button>
+
+        <a
+            href="{% url 'gerar_relatorio_dashboard' %}?{{ request.GET.urlencode }}"
+            class="btn btn-dark"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Gerar Relatório
+        </a>
+    </div>
+
+
+    </div>
+  </form>
+
+  <!-- GRID -->
+  <div class="dashboard-grid">
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Responsável</th>
+            <th>Status</th>
+            <th>País</th>
+            <th class="total">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for row in dashboard %}
+            <tr
+                class="row-click"
+                data-status="{{ row.status }}"
+                data-country="{{ row.country_id }}"
+                data-responsible="{{ row.responsible }}"
+            >
+                <td>{{ row.responsible|default:"—" }}</td>
+                <td>{{ row.status }}</td>
+                <td>{{ row.country__name|default:"—" }}</td>
+                <td class="total">{{ row.total }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="empty">Nenhum dado encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="chart-card">
+      <h3>Distribuição por Status</h3>
+      <div class="chart-box">
+        <canvas id="statusChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  const rawDashboardData = [
+    {% for row in dashboard %}
+      { status: "{{ row.status }}", total: {{ row.total }} },
+    {% endfor %}
+  ];
+
+  function cssVar(name) {
+    const v = getComputedStyle(document.documentElement).getPropertyValue(name);
+    return v ? v.trim() : "#999";
+  }
+
+  const STATUS_COLORS = {
+    "DONE": cssVar("--success"),
+    "Concluído": cssVar("--success"),
+
+    "PROGRESS": cssVar("--warning"),
+    "Em progresso": cssVar("--warning"),
+
+    "REQUESTED": cssVar("--primary"),
+    "Requisitado": cssVar("--primary"),
+
+    "LATE": cssVar("--error"),
+    "Atrasado": cssVar("--error"),
+
+    "AWAITING_CHINA": cssVar("--waiting"),
+    "Aguardando China": cssVar("--waiting"),
+
+    "AWAITING_CHINA_LATE": cssVar("--error-china"),
+    "China Atrasada": cssVar("--error-china"),
+  };
+
+  function buildStatusChart(data) {
+    const totals = {};
+    data.forEach(i => {
+      totals[i.status] = (totals[i.status] || 0) + i.total;
+    });
+
+    const labels = Object.keys(totals);
+    const values = Object.values(totals);
+    const colors = labels.map(l => STATUS_COLORS[l] || "#999");
+
+    const ctx = document.getElementById("statusChart");
+
+    if (window.statusPieChart) {
+      window.statusPieChart.destroy();
+    }
+
+    window.statusPieChart = new Chart(ctx, {
+      type: "pie",
+      data: {
+        labels,
+        datasets: [{
+          data: values,
+          backgroundColor: colors,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom" }
+        },
+
+        /* CLIQUE NO GRÁFICO */
+        onClick(evt, elements) {
+          if (!elements.length) return;
+          const index = elements[0].index;
+          const status = labels[index];
+          abrirDetalhes(status);
+        }
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (rawDashboardData.length) {
+      buildStatusChart(rawDashboardData);
+    }
+  });
+</script>
+<script>
+  document.querySelectorAll(".row-click").forEach(row => {
+    row.addEventListener("click", () => {
+      const params = new URLSearchParams();
+
+      if (row.dataset.status) {
+        params.set("status", row.dataset.status);
+      }
+
+      if (row.dataset.country) {
+        params.set("country", row.dataset.country);
+      }
+
+      if (row.dataset.responsible && row.dataset.responsible !== "—") {
+        params.set("responsible", row.dataset.responsible);
+      }
+
+      window.location.href =
+        `/dashboard/detalhes/?${params.toString()}`;
+    });
+  });
+</script>
+
+<script>
+  const periodoSelect = document.querySelector('select[name="periodo"]');
+  const dataInicio = document.querySelector('input[name="data_inicio"]');
+  const dataFim = document.querySelector('input[name="data_fim"]');
+
+  if (periodoSelect) {
+    periodoSelect.addEventListener('change', () => {
+      if (periodoSelect.value) {
+        dataInicio.value = '';
+        dataFim.value = '';
+      }
+    });
+  }
+</script>
+
+</body>
+</html>

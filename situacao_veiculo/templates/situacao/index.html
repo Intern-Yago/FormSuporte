@@ -1,0 +1,778 @@
+{% extends 'painel/base.html' %}
+{% load static %}
+
+{% block title %}EAATA Brasil - Controle de Acesso ao Suporte{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'situacao/css/style.css' %}">
+  <style>
+    /* Ajuste para o container não brigar com o layout lateral */
+    .dashboard-wrapper { width: 100% !important; max-width: 900px !important; margin: 40px auto !important; padding: 0 15px; }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <div class="dashboard-wrapper">
+    <div class="dash-container">
+      
+      <header class="dash-header">
+        <div class="dash-logo">
+          <div class="logo-text-group">
+            <span class="logo-text-main">EAATA</span>
+            <span class="logo-text-sub">BRASIL</span>
+          </div>
+        </div>
+        <div class="dash-title-group">
+          <h1 class="dash-title">Controle de Acesso ao Suporte</h1>
+          <p class="dash-subtitle">Consulta rápida de atendimento por serial</p>
+        </div>
+      </header>
+
+      <main class="dash-content">
+        <div class="dash-card search-card">
+          <div class="card-header-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Buscar <strong>Número de Série</strong>
+          </div>
+          
+          <form method="POST" action="{% url 'buscar_serial' %}">
+            {% csrf_token %}
+            <div class="search-input-group">
+              <div class="search-icon-wrapper">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              </div>
+              <input type="text" id="serie" name="serial" value="{{ serial_digitado }}" placeholder="Digite o serial..." required />
+              <button type="submit" class="btn-buscar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                Buscar
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {% if clientes_duplicados %}
+          <div class="dash-card">
+            <h2 class="section-title">Clientes com serial duplicado:</h2>
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Nome</th><th>CNPJ</th><th>Telefone</th><th>Equipamento</th>
+                    <th>Serial Principal</th><th>Serial Sec.</th><th>Vencimento</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in clientes_duplicados %}
+                  <tr class="{{ item.status }}">
+                    <td>{{ item.cliente.nome }}</td><td>{{ item.cliente.cnpj }}</td>
+                    <td>{{ item.cliente.tel }}</td><td>{{ item.cliente.equipamento }}</td>
+                    <td>{{ item.cliente.serial }}</td><td>{{ item.cliente.serial_sec }}</td>
+                    <td>{% if item.cliente.vencimento %}{{ item.cliente.vencimento|date:"d/m/Y" }}{% else %}—{% endif %}</td>
+                    <td>{{ item.status_message }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        {% else %}
+          <div class="dash-grid">
+            
+            <div class="dash-card data-card">
+              <div class="card-header-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <strong>Dados do Cliente</strong>
+              </div>
+
+              {% if buscou_pelo_secundario %}
+                <div class="alert-box alert-warning" style="margin-bottom: 15px;">
+                  <strong>⚠️ Busca feita pelo serial secundário:</strong> {{ serial_buscado }}<br>
+                  <small>Mostrando cadastro do principal: <strong>{{ serial_principal }}</strong></small>
+                </div>
+              {% endif %}
+
+              <div class="data-list">
+                <div class="data-row">
+                  <span class="data-label">Serial Principal:</span>
+                  <span class="data-value">{% if cliente %}{{ serial_principal|default:cliente.serial }}{% elif serial_digitado %}SEM DADOS{% else %}CONSULTE{% endif %}</span>
+                </div>
+                {% if serial_secundario or cliente.serial_sec %}
+                <div class="data-row">
+                  <span class="data-label">Serial Secundário:</span>
+                  <span class="data-value">{{ serial_secundario|default:cliente.serial_sec }}</span>
+                </div>
+                {% endif %}
+                <div class="data-row">
+                  <span class="data-label">Equipamento:</span>
+                  <span class="data-value">{% if cliente %}{{ cliente.equipamento }}{% elif serial_digitado %}SEM DADOS{% else %}CONSULTE{% endif %}</span>
+                </div>
+                <div class="data-row">
+                  <span class="data-label">Nome:</span>
+                  <span class="data-value">{% if cliente %}{{ cliente.nome }}{% elif serial_digitado %}SEM DADOS{% else %}CONSULTE{% endif %}</span>
+                </div>
+                <div class="data-row">
+                  <span class="data-label">CNPJ/CPF:</span>
+                  <span class="data-value">{% if cliente %}{{ cliente.cnpj }}{% elif serial_digitado %}SEM DADOS{% else %}CONSULTE{% endif %}</span>
+                </div>
+                <div class="data-row">
+                  <span class="data-label">Telefone:</span>
+                  <span class="data-value">{% if cliente %}{{ cliente.tel }}{% elif serial_digitado %}SEM DADOS{% else %}CONSULTE{% endif %}</span>
+                </div>
+              </div>
+
+              
+            </div>
+
+            <div class="dash-card status-card">
+              <div class="card-header-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <strong>Status de Uso</strong>
+              </div>
+
+              <div class="large-status-box {% if not cliente %}sem-dados{% else %}box-{{ status }}{% endif %}" id="status">
+                {% if cliente %}
+                  <div class="large-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                  </div>
+                  <div class="large-text-group">
+                    <strong id="statusText">{{ status_message }}</strong>
+                    {% if cliente.vencimento and status in "vencendo vencido" %}
+                      <span style="display:block; margin-top:2px;">
+                        {% if status == "vencendo" %}Vence em: {{ cliente.vencimento|date:"d/m/Y" }}{% else %}Venceu em: {{ cliente.vencimento|date:"d/m/Y" }}{% endif %}
+                      </span>
+                    {% else %}
+                      <span>Atender normalmente</span>
+                    {% endif %}
+                  </div>
+                {% else %}
+                  <div class="large-text-group">
+                    <strong>{% if serial_digitado %}SEM DADOS{% else %}CONSULTE{% endif %}</strong>
+                    <span style="display:block; margin-top:2px;">
+                      {% if serial_digitado %}Passar para o comercial{% else %}Aguardando consulta{% endif %}
+                    </span>
+                  </div>
+                {% endif %}
+              </div>
+
+              {% if status == "vencido" %}
+                <div style="margin-top:15px; padding: 10px; background: #f8fafc; border-radius: 6px;">
+                  <label style="display:flex; gap:10px; align-items:center; cursor: pointer; color: #334155;">
+                  <input type="checkbox" id="contactadoCheckbox" {% if ui_confirmar_contactado %}{% else %}disabled checked{% endif %} style="width:16px;height:16px;" />
+                    <strong id="contactadoLabelText" style="font-size:14px;">Último atendimento realizado (confirmar)</strong>
+                  </label>
+                  <small id="contactadoHint" style="display:block; margin-top:6px; font-size:12px; color:#64748b;">
+                    Clique para confirmar visualmente. Após confirmar, ficará BLOQUEADO.
+                  </small>
+                </div>
+              {% endif %}
+              
+              <div class="flex-spacer"></div>
+
+              <div class="dash-action-buttons">
+                <button id="abrirPopup" class="dash-btn-outline" type="button">Novo Serial</button>
+                <button id="abrirPopupUpdate" class="dash-btn-primary" type="button">Atualizar Serial</button>
+              </div>
+
+            </div>
+
+          </div>
+        {% endif %}
+      </main>
+    </div>
+  </div>
+
+  <div id="popupUpdate" class="popup-overlay">
+    <div class="popup-content">
+      <span id="fecharPopupUpdate" class="close-btn">&times;</span>
+      <h2 class="popup-title">Atualizar Dados</h2>
+
+      <div id="formBannerUpdate" class="form-banner" style="display:none;"></div>
+
+      <form id="formUpdate" class="popup-form" action="javascript:void(0);">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="serial_update">Serial (principal)</label>
+          <input type="text" id="serial_update" name="serial" placeholder="Digite o serial para buscar" required>
+          <small class="input-error" data-for="serial"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="serial_sec_update">Serial (secundário)</label>
+          <input type="text" id="serial_sec_update" name="serial_sec" placeholder="Digite o serial secundário" disabled>
+          <small class="input-error" data-for="serial_sec"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="nome_update">Nome</label>
+          <input type="text" id="nome_update" name="nome" placeholder="Nome do cliente" disabled>
+          <small class="input-error" data-for="nome"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="cnpj_update">CNPJ/CPF</label>
+          <input type="text" id="cnpj_update" name="cnpj" placeholder="CNPJ/CPF" disabled>    
+          <small class="input-error" data-for="cnpj"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="tel_update">Telefone</label>
+          <input type="text" id="tel_update" name="tel" placeholder="(00) 00000-0000" disabled>
+          <small class="input-error" data-for="tel"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="vencimento_update">Vencimento</label>
+          <input type="date" id="vencimento_update" name="vencimento" disabled>
+          <small class="input-error" data-for="vencimento"></small>
+        </div>
+
+        <div class="popup-buttons">
+          <button type="button" id="fecharPopupBtnUpdate" class="btn-cancelar">Fechar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="popupForm" class="popup-overlay">
+    <div class="popup-content">
+      <span id="fecharPopup" class="close-btn">&times;</span>
+      <h2 class="popup-title">Enviar Informações</h2>
+
+      <div id="formBanner" class="form-banner" style="display:none;"></div>
+
+      <form method="POST" action="{% url 'cadastrar_serial' %}" enctype="multipart/form-data" class="popup-form">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="data_create">Data de ativação</label>
+          <input type="date" id="data_create" name="data" value="">
+          <small class="input-error" data-for="data"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="serial">Serial</label>
+          <input type="text" id="serial" name="serial" placeholder="Digite o serial">
+          <small class="input-error" data-for="serial"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="nome">Nome</label>
+          <input type="text" id="nome" name="nome" placeholder="Digite o nome do cliente">    
+          <small class="input-error" data-for="nome"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="cnpj">CNPJ/CPF</label>
+          <input type="text" id="cnpj" name="cnpj" placeholder="Digite o CNPJ/CPF do cliente">
+          <small class="input-error" data-for="cnpj"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="tel">Telefone</label>
+          <input type="text" id="tel" name="tel" placeholder="(00) 00000-0000">
+          <small class="input-error" data-for="tel"></small>
+        </div>
+
+        <div class="form-group">
+          <label for="equipamento">Equipamento</label>
+          <input type="text" id="equipamento" name="equipamento" list="equipamentosList" placeholder="Digite qual o equipamento">
+          <datalist id="equipamentosList"></datalist>
+          <small class="input-error" data-for="equipamento"></small>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <div class="import-section">
+            <h3 class="section-title">Importar por Excel</h3>
+            <p class="import-note">Envie um arquivo .xlsx...</p>
+
+            <div id="importBanner" class="form-banner" style="display:none;"></div>
+
+            <input type="file" id="arquivo_excel" name="arquivo_excel" accept=".xlsx,.xls">   
+
+            <div class="popup-buttons" style="justify-content:flex-start; gap:12px;">
+                <button id="btnImportar" type="button" class="btn-enviar">Importar</button>   
+                <small class="import-hint">Linhas sem data usarão a data atual automaticamente.</small>
+            </div>
+        </div>
+
+        {% if is_master %}
+          <div class="admin-fields">
+            <label style="font-weight:700;color:#1b3b66;margin-bottom:8px;">
+              Configurações de vencimento
+              <span class="admin-badge">ADMIN</span>
+            </label>
+
+            <div class="form-group">
+              <label for="anos_para_vencimento">Anos para vencimento</label>
+              <input type="number" id="anos_para_vencimento" name="anos_para_vencimento" min="0" step="1" value="2">
+              <small class="input-error" data-for="anos_para_vencimento"></small>
+            </div>
+
+            <div class="form-group">
+              <label for="vencimento_create">Data de vencimento</label>
+              <input type="date" id="vencimento_create" name="vencimento">
+              <small class="input-error" data-for="vencimento"></small>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="popup-buttons">
+          <button type="submit" class="btn-enviar">Cadastrar</button>
+          <button type="button" id="fecharPopupBtn" class="btn-cancelar">Cancelar</button>    
+        </div>
+      </form>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    function refreshMain(serial) {
+      if (!serial) return;
+      const mainInput = document.getElementById('serie');
+      if (!mainInput) return;
+      const mainForm = mainInput.closest('form');
+      if (!mainForm) return;
+      mainInput.value = serial.trim();
+      mainForm.submit();
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const cb = document.getElementById("contactadoCheckbox");
+      if (!cb) return;
+      if (cb.disabled) return;
+
+      const statusText = document.getElementById("statusText");
+      const labelText  = document.getElementById("contactadoLabelText");
+      const hint       = document.getElementById("contactadoHint");
+
+      cb.addEventListener("change", () => {
+        if (!cb.checked) {
+          cb.checked = true;
+          return;
+        }
+        if (statusText) statusText.textContent = "Suporte vencido - BLOQUEADO";
+        if (labelText)  labelText.textContent = "Último atendimento realizado ✅ (confirmado)";
+        if (hint)       hint.textContent = "Confirmado. Próximas buscas continuarão BLOQUEADAS.";
+        cb.disabled = true;
+
+        const statusBox = document.getElementById("status");
+        if (statusBox) {
+          statusBox.classList.add("box-bloqueado");
+          statusBox.classList.remove("box-vencido");
+        }
+      });
+    });
+  </script>
+
+  <script>
+  (function () {
+    const popup = document.getElementById('popupForm');
+    const form  = popup.querySelector('form');
+    const btnFechar  = document.getElementById('fecharPopup');
+    const btnFechar2 = document.getElementById('fecharPopupBtn');
+    const banner = popup.querySelector('#formBanner');
+    const importBanner = document.getElementById('importBanner');
+    const input_date = popup.querySelector("#data_create");
+    const msgBox = document.getElementById('message');
+    const noteP  = msgBox ? msgBox.querySelector('.note') : null;
+
+    function openPopup(){ popup.style.display = 'flex'; }
+    function closePopup(){ popup.style.display = 'none'; }
+
+    function showFooterMessage(text, ok = true){
+      if(!noteP) return;
+      noteP.textContent = text;
+      noteP.classList.remove('note-error','note-success');
+      noteP.classList.add(ok ? 'note-success' : 'note-error');
+      msgBox.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
+
+    function setBanner(msg, type='error'){
+      if(!banner) return;
+      if(!msg){
+        banner.style.display='none';
+        banner.textContent='';
+        banner.classList.remove('is-error','is-info','is-success');
+        return;
+      }
+      banner.textContent = msg;
+      banner.style.display='block';
+      banner.classList.remove('is-error','is-info','is-success');
+      if(type==='success') banner.classList.add('is-success');
+      else if(type==='info') banner.classList.add('is-info');
+      else banner.classList.add('is-error');
+    }
+
+    function setImportBanner(msg, type='error'){
+      if(!importBanner) return;
+      if(!msg){
+        importBanner.style.display='none';
+        importBanner.textContent='';
+        importBanner.classList.remove('is-error','is-info','is-success');
+        return;
+      }
+      importBanner.textContent = msg;
+      importBanner.style.display='block';
+      importBanner.classList.remove('is-error','is-info','is-success');
+      if(type==='success') importBanner.classList.add('is-success');
+      else if(type==='info') importBanner.classList.add('is-info');
+      else importBanner.classList.add('is-error');
+    }
+
+    function clearFormErrors(){
+      setBanner('');
+      form.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+      form.querySelectorAll('.input-error').forEach(el => { el.style.display='none'; el.textContent=''; });
+    }
+
+    function setFieldError(fieldName, message){
+      const input = form.querySelector(`[name="${fieldName}"]`);
+      if(!input) return;
+      input.classList.add('field-error');
+      const small = form.querySelector(`.input-error[data-for="${fieldName}"]`);
+      if(small){
+        small.textContent = message;
+        small.style.display = 'block';
+      }
+    }
+
+    form.addEventListener('input', (e) => {
+      const input = e.target;
+      input.classList.remove('field-error');
+      const small = form.querySelector(`.input-error[data-for="${input.name}"]`);
+      if(small){ small.style.display='none'; small.textContent=''; }
+      setBanner('');
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clearFormErrors();
+      const url = form.getAttribute('action');
+      const formData = new FormData(form);
+      const csrfInput = form.querySelector('input[name=csrfmiddlewaretoken]');
+      const headers = {};
+      if(csrfInput) headers['X-CSRFToken'] = csrfInput.value;
+
+      try{
+        const resp = await fetch(url, { method:'POST', headers, body:formData });
+        const data = await resp.json();
+        if(!resp.ok || data.ok === false){
+          setBanner(data.message || 'Erro ao cadastrar.', 'error');
+          if(data.field_errors){
+            Object.entries(data.field_errors).forEach(([field, msg]) => setFieldError(field, msg));
+          }
+          return;
+        }
+        const createdSerial = (formData.get('serial') || '').trim();
+        form.reset();
+        closePopup();
+        showFooterMessage(data.message || 'Cadastro realizado com sucesso!', true);
+        if (createdSerial) refreshMain(createdSerial);
+      }
+      catch{
+        setBanner('Falha de comunicação com o servidor.', 'error');
+      }
+    });
+
+    document.getElementById("btnImportar").addEventListener("click", async (e) => {
+      e.preventDefault();
+      setImportBanner('');
+      const url = "{% url 'importar_excel' %}";
+      const fileInput = document.getElementById("arquivo_excel");
+      const file = fileInput.files[0];
+      if (!file) {
+        setImportBanner("Selecione um arquivo antes de importar.", "error");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("arquivo_excel", file);
+      const csrfInput = document.querySelector('input[name=csrfmiddlewaretoken]');
+      const headers = {};
+      if (csrfInput) headers["X-CSRFToken"] = csrfInput.value;
+
+      try {
+        const resp = await fetch(url, { method: "POST", headers, body: formData });
+        const data = await resp.json();
+        if (!resp.ok || data.ok === false) {
+          setImportBanner(data.message || "Erro ao importar planilha.", "error");
+          return;
+        }
+        const duplicates = data?.data?.duplicates ?? 0;
+        const errors = data?.data?.errors ?? [];
+        let summary = data.message || "Importação concluída.";
+        if (errors.length) {
+          const linhas = errors.map(err => err.row).filter(Boolean).join(", ");
+          summary += linhas ? ` Linhas com erro: ${linhas}.` : ` Linhas com erro: ${errors.length}.`;
+        }
+        if (duplicates) summary += ` Duplicados ignorados: ${duplicates}.`;
+
+        setImportBanner(summary, errors.length ? "info" : "success");
+        fileInput.value = "";
+        showFooterMessage(summary, errors.length === 0);
+      } catch (err) {
+        console.error(err);
+        setImportBanner("Falha de comunicação com o servidor.", "error");
+      }
+    });
+
+    document.getElementById('abrirPopup')?.addEventListener('click', openPopup);
+    btnFechar?.addEventListener('click', closePopup);
+    btnFechar2?.addEventListener('click', closePopup);
+    window.addEventListener('click', (e) => { if(e.target === popup) closePopup(); });        
+    window.addEventListener('keydown', (e) => { if(e.key === 'Escape') closePopup(); });      
+  })();
+  </script>
+
+  <script>
+  (function(){
+    const input = document.getElementById('equipamento');
+    const list = document.getElementById('equipamentosList');
+    if (!input || !list) return;
+
+    const url = "{% url 'equipamentos_suggest' %}";
+    let lastQuery = '';
+    let timer = null;
+
+    function clearList(){ list.innerHTML = ''; }
+    function fillList(items){
+      clearList();
+      (items||[]).forEach(txt => {
+        const opt = document.createElement('option');
+        opt.value = txt;
+        list.appendChild(opt);
+      });
+    }
+
+    async function fetchSuggest(q){
+      try{
+        const resp = await fetch(url + (q? ('?q='+encodeURIComponent(q)) : ''), { credentials:'same-origin' });
+        if(!resp.ok) return;
+        const data = await resp.json();
+        if (input.value.trim() !== lastQuery) return;
+        fillList(data.results || []);
+      }catch(_){}
+    }
+
+    function schedule(){
+      const q = input.value.trim();
+      lastQuery = q;
+      clearTimeout(timer);
+      timer = setTimeout(()=> fetchSuggest(q), 250);
+    }
+
+    input.addEventListener('input', schedule);
+    input.addEventListener('focus', ()=>{ if (!input.value.trim()) fetchSuggest(''); });      
+  })();
+  </script>
+
+  <script>
+  (function () {
+    const debounce = (fn, ms=500) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; };
+    const popup     = document.getElementById('popupUpdate');
+    const openBtn   = document.getElementById('abrirPopupUpdate');
+    const closeX    = document.getElementById('fecharPopupUpdate');
+    const closeBtn  = document.getElementById('fecharPopupBtnUpdate');
+    const banner    = document.getElementById('formBannerUpdate');
+    const mainSerialInput = document.getElementById('serie');
+    const form = document.getElementById('formUpdate');
+    const csrfInput = form.querySelector('input[name=csrfmiddlewaretoken]');
+    const headers = csrfInput ? { 'X-CSRFToken': csrfInput.value } : {};
+
+    const urlBuscar    = "{% url 'api_buscar_cliente' %}";
+    const urlAtualizar = "{% url 'api_atualizar_cliente' %}";
+
+    const inputs = {
+      serial:      document.getElementById('serial_update'),
+      serial_sec:  document.getElementById('serial_sec_update'),
+      nome:        document.getElementById('nome_update'),
+      cnpj:        document.getElementById('cnpj_update'),
+      tel:         document.getElementById('tel_update'),
+      vencimento:  document.getElementById('vencimento_update'),
+    };
+
+    function setBanner(msg, type='error'){
+      if(!banner) return;
+      if(!msg){
+        banner.style.display='none';
+        banner.textContent='';
+        banner.classList.remove('is-error','is-info','is-success');
+        return;
+      }
+      banner.textContent = msg;
+      banner.style.display='block';
+      banner.classList.remove('is-error','is-info','is-success');
+      if(type==='success') banner.classList.add('is-success');
+      else if(type==='info') banner.classList.add('is-info');
+      else banner.classList.add('is-error');
+    }
+
+    function clearFieldErrors(){
+      form.querySelectorAll('.field-error').forEach(el => el.classList.remove('field-error'));
+      form.querySelectorAll('.input-error').forEach(el => { el.style.display='none'; el.textContent=''; });
+    }
+
+    let loaded = false;
+    function setLoadingState(isLoading){
+      ['serial_sec','nome','cnpj','tel','vencimento'].forEach(k => {
+        if (inputs[k]) inputs[k].disabled = isLoading || !loaded;
+      });
+    }
+
+    function fillForm(data){
+      inputs.nome.value = data.nome || '';
+      inputs.cnpj.value = data.cnpj || '';
+      inputs.tel.value  = data.tel  || '';
+      inputs.serial_sec.value = data.serial_sec || '';
+      if (data.vencimento){
+        inputs.vencimento.value = (data.vencimento || '').slice(0, 10);
+      } else {
+        inputs.vencimento.value = '';
+      }
+    }
+
+    async function fetchBySerial(serial){
+      const s = (serial || '').trim();
+      if(!s){
+        loaded = false; fillForm({}); setLoadingState(false);
+        setBanner('Digite um serial para buscar.', 'info');
+        return;
+      }
+      setBanner('Buscando dados...', 'info');
+      setLoadingState(true);
+      clearFieldErrors();
+
+      try{
+        const resp = await fetch(`${urlBuscar}?serial=${encodeURIComponent(s)}`, { method:'GET' });
+        const data = await resp.json();
+        if(!resp.ok || data.ok === false){
+          loaded = false; fillForm({}); setLoadingState(false);
+          setBanner(data.message || 'Serial não encontrado.', 'error');
+          const small = form.querySelector('.input-error[data-for="serial"]');
+          inputs.serial.classList.add('field-error');
+          if(small){ small.textContent = data.message || 'Serial não encontrado.'; small.style.display='block'; }
+          return;
+        }
+        if (data?.data?.serial && data.data.serial.toLowerCase() !== s.toLowerCase()){        
+          inputs.serial.value = data.data.serial;
+        }
+        loaded = true;
+        fillForm(data.data);
+        setBanner('Dados carregados. Altere e eu salvo automaticamente.', 'info');
+        setLoadingState(false);
+      }
+      catch{
+        loaded = false; fillForm({}); setLoadingState(false);
+        setBanner('Falha ao buscar dados. Verifique sua conexão.', 'error');
+      }
+    }
+
+    const debouncedFetch = debounce(() => fetchBySerial(inputs.serial.value.trim()), 600);    
+
+    function openPopup() {
+      popup.style.display = 'flex';
+      const s = (mainSerialInput?.value || '').trim();
+      inputs.serial.value = s;
+      if (s) fetchBySerial(s);
+      clearFieldErrors();
+      setBanner('');
+    }
+
+    function closePopup() {
+      const s = (inputs.serial.value || '').trim();
+      if (s) refreshMain(s);
+      popup.style.display = 'none';
+      clearFieldErrors();
+      setBanner('');
+    }
+
+    inputs.serial.addEventListener('input', () => { clearFieldErrors(); setBanner(''); debouncedFetch(); });
+    inputs.serial.addEventListener('blur',  () => fetchBySerial(inputs.serial.value.trim())); 
+    inputs.serial.addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){ e.preventDefault(); fetchBySerial(inputs.serial.value.trim()); } 
+    });
+
+    async function saveField(field, value){
+      if(!loaded || field === 'serial') return;
+      try{
+        const body = new FormData();
+        const currentSerial = (inputs.serial.value || '').trim();
+        if (!currentSerial) return;
+        body.append('serial', currentSerial);
+        body.append('field',  field);
+        body.append('value',  value);
+
+        const resp = await fetch(urlAtualizar, { method:'POST', headers, body });
+        const data = await resp.json();
+
+        if (!resp.ok || data.ok === false){
+          const small = form.querySelector(`.input-error[data-for="${field}"]`);
+          const fieldInput = inputs[field];
+          if (fieldInput) fieldInput.classList.add('field-error');
+          if(small){ small.textContent = data.message || 'Falha ao salvar.'; small.style.display='block'; }
+          setBanner(data.message || 'Falha ao salvar campo.', 'error');
+        } else {
+          if (field === 'vencimento'){
+            const v = data?.data?.vencimento;
+            inputs.vencimento.value = v ? (v || '').slice(0, 10) : '';
+          }
+          if (field === 'serial_sec'){
+            const v = data?.data?.serial_sec;
+            if (typeof v !== 'undefined') inputs.serial_sec.value = v || '';
+          }
+          setBanner('Alterações salvas.', 'success');
+        }
+      }
+      catch{
+        const small = form.querySelector(`.input-error[data-for="${field}"]`);
+        const fieldInput = inputs[field];
+        if (fieldInput) fieldInput.classList.add('field-error');
+        if(small){ small.textContent = 'Erro de rede ao salvar.'; small.style.display='block'; }
+        setBanner('Erro de rede ao salvar.', 'error');
+      }
+    }
+
+    const debouncedSavers = {
+      serial_sec: debounce((v) => saveField('serial_sec', v), 400),
+      nome: debounce((v) => saveField('nome', v), 400),
+      cnpj: debounce((v) => saveField('cnpj', v), 400),
+      tel:  debounce((v) => saveField('tel',  v), 400),
+    };
+
+    ['nome','cnpj','tel','serial_sec'].forEach(field => {
+      inputs[field].addEventListener('input', (e) => { clearFieldErrors(); debouncedSavers[field](e.target.value); });
+    });
+
+    inputs.vencimento.addEventListener('change', async (e) => {
+      const v = e.target.value;
+      await saveField('vencimento', v || '');
+      if (!v) inputs.vencimento.value = '';
+    });
+
+    openBtn?.addEventListener('click', openPopup);
+    closeX?.addEventListener('click', closePopup);
+    closeBtn?.addEventListener('click', closePopup);
+    window.addEventListener('click', (e) => { if(e.target === popup) closePopup(); });        
+    window.addEventListener('keydown', (e) => { if(e.key === 'Escape') {
+      if (popup && popup.style.display === 'flex') closePopup();
+    }});
+  })();
+  </script>
+{% endblock %}

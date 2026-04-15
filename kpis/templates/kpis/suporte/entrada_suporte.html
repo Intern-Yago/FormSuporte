@@ -1,0 +1,289 @@
+{% extends 'painel/base.html' %}
+{% load static %}
+
+{% block title %}EAATA – Entrada de Dados KPI{% endblock %}
+
+{% block head %}
+  <link rel="stylesheet" href="{% static 'kpis/css/suporte/entrada.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="eaata-app kpi-wrapper">
+  <main class="eaata-content">
+    
+    <section class="kpi-header">
+      <div>
+        <h2>Entrada de Dados</h2>
+        <p class="kpi-subtitle">Insira os registros mensais de atendimentos e notas por técnico do Suporte.</p>
+      </div>
+
+      <div class="kpi-header-actions">
+        <a href="{% url 'kpis:dashboard_suporte' %}" class="kpi-btn">Voltar ao Dashboard</a>
+      </div>
+    </section>
+
+    <section class="entry-grid">
+      <div class="entry-left">
+        <article class="eaata-card period-card">
+          <div class="section-label">PERÍODO</div>
+          <div class="mini-period-nav">
+            <button type="button" class="period-btn" id="entry-prev-month">‹</button>
+            <div class="period-center">
+              <div class="year" id="entry-period-year">{{ ano }}</div>
+              <div class="month" id="entry-period-month">MARÇO</div>
+            </div>
+            <button type="button" class="period-btn" id="entry-next-month">›</button>
+          </div>
+        </article>
+
+        <article class="eaata-card record-form-card">
+          <div class="section-label">NOVO REGISTRO</div>
+
+          <form id="form-record">
+            <div class="field">
+              <label for="record-tech">TÉCNICO</label>
+              <select id="record-tech" name="technicianId"></select>
+            </div>
+
+            <div class="field">
+              <label for="record-total">TOTAL DE ATENDIMENTOS</label>
+              <input type="number" id="record-total" name="totalAtendimentos" min="0" placeholder="Ex: 695">
+            </div>
+
+            <div class="field">
+              <label for="record-nota">NOTA MÉDIA (0–10)</label>
+              <input type="number" id="record-nota" name="notaMedia" min="0" max="10" step="0.01" placeholder="Ex: 9.60">
+            </div>
+
+            <button type="submit" class="btn-primary">Salvar Registro</button>
+          </form>
+        </article>
+
+        <article class="eaata-card technicians-card">
+          <div class="records-header">
+            <div class="section-label no-margin">TÉCNICOS DO SUPORTE</div>
+          </div>
+
+          <div class="tech-list" id="technicians-body">
+            <div class="tech-empty">Carregando...</div>
+          </div>
+        </article>
+      </div>
+
+      <div class="entry-right">
+        <article class="eaata-card records-card">
+          <div class="records-header">
+            <div class="records-title" id="records-period-title">Registros — Março 2026</div>
+            <div class="count-badge" id="records-count-badge">0 registros</div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="records-table">
+              <thead>
+                <tr>
+                  <th>TÉCNICO</th>
+                  <th>CATEGORIA</th>
+                  <th>ATENDIMENTOS</th>
+                  <th>NOTA MÉDIA</th>
+                  <th>AÇÕES</th>
+                </tr>
+              </thead>
+              <tbody id="records-body">
+                <tr>
+                  <td colspan="5">Carregando...</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="2">TOTAL</td>
+                  <td id="records-total-atendimentos">0</td>
+                  <td id="records-total-nota">0</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  const MONTH_NAMES = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  ];
+
+  let currentYear = {{ ano|default:2026 }};
+  let currentMonth = {{ mes|default:3 }};
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return "";
+  }
+
+  const csrfToken = getCookie("csrftoken");
+
+  function updatePeriodLabels() {
+    document.getElementById("entry-period-year").textContent = currentYear;
+    document.getElementById("entry-period-month").textContent = (MONTH_NAMES[currentMonth - 1] || "").toUpperCase();
+    document.getElementById("records-period-title").textContent = `Registros — ${MONTH_NAMES[currentMonth - 1]} ${currentYear}`;
+  }
+
+  function categoryBadge(category) {
+    if (category === "chaveiro") {
+      return `<span class="category-badge badge-chaveiro">Chaveiro</span>`;
+    } else if (category === "diagnostico") {
+      return `<span class="category-badge badge-diagnostico">Diagnóstico</span>`;
+    }
+    return `<span class="category-badge">${category || 'N/A'}</span>`;
+  }
+
+  async function loadTechnicians() {
+    const response = await fetch(`{% url 'kpis:api_technicians_list' %}?include_inactive=1`);
+    const data = await response.json();
+
+    const techBody = document.getElementById("technicians-body");
+    const techSelect = document.getElementById("record-tech");
+
+    if (!data.length) {
+      techBody.innerHTML = `<div class="tech-empty">Nenhum técnico cadastrado no suporte.</div>`;
+      techSelect.innerHTML = `<option value="">Nenhum técnico disponível</option>`;
+      return;
+    }
+
+    techBody.innerHTML = data.map(item => `
+      <div class="tech-item">
+        <div class="tech-name">${item.name}</div>
+        <div class="tech-right">
+          <span class="tech-status ${item.active ? '' : 'inactive'}">${item.active ? 'Ativo' : 'Inativo'}</span>
+        </div>
+      </div>
+    `).join("");
+
+    techSelect.innerHTML = data
+      .filter(item => item.active)
+      .map(item => `<option value="${item.id}">${item.name}</option>`)
+      .join("");
+  }
+
+  async function loadRecords() {
+    updatePeriodLabels();
+
+    const response = await fetch(`{% url 'kpis:api_records_by_month' %}?year=${currentYear}&month=${currentMonth}`);
+    const data = await response.json();
+
+    const tbody = document.getElementById("records-body");
+    const badge = document.getElementById("records-count-badge");
+    const totalAtendimentosEl = document.getElementById("records-total-atendimentos");
+    const totalNotaEl = document.getElementById("records-total-nota");
+
+    badge.textContent = `${data.length} registro${data.length === 1 ? "" : "s"}`;
+
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="5">Nenhum registro encontrado.</td></tr>`;
+      totalAtendimentosEl.textContent = "0";
+      totalNotaEl.textContent = "0";
+      return;
+    }
+
+    let totalAtendimentos = 0;
+    let somaNotas = 0;
+
+    tbody.innerHTML = data.map(item => {
+      totalAtendimentos += Number(item.totalAtendimentos || 0);
+      somaNotas += Number(item.notaMedia || 0);
+
+      return `
+        <tr>
+          <td>${item.technicianName}</td>
+          <td>${categoryBadge(item.category)}</td>
+          <td>${new Intl.NumberFormat("pt-BR").format(item.totalAtendimentos)}</td>
+          <td class="nota-highlight">${item.notaMedia}</td>
+          <td>
+            <div class="row-actions">
+              <button type="button" class="action-link" onclick="prefillRecord(${item.technicianId}, ${item.totalAtendimentos}, ${item.notaMedia})">Editar</button>
+              <button type="button" class="action-link danger" onclick="deleteRecord(${item.id})">Excluir</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    totalAtendimentosEl.textContent = new Intl.NumberFormat("pt-BR").format(totalAtendimentos);
+    totalNotaEl.textContent = (somaNotas / data.length).toFixed(2);
+  }
+
+  function prefillRecord(technicianId, total, nota) {
+    document.getElementById("record-tech").value = technicianId;
+    document.getElementById("record-total").value = total;
+    document.getElementById("record-nota").value = nota;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function deleteRecord(id) {
+    if(!confirm("Deseja excluir este registro?")) return;
+    await fetch(`/kpis/suporte/api/records/${id}/delete/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken
+      }
+    });
+    await loadRecords();
+  }
+
+  document.getElementById("form-record").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const payload = {
+      technicianId: document.getElementById("record-tech").value,
+      year: currentYear,
+      month: currentMonth,
+      totalAtendimentos: document.getElementById("record-total").value,
+      notaMedia: document.getElementById("record-nota").value
+    };
+
+    const response = await fetch(`{% url 'kpis:api_records_upsert' %}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.ok) {
+      alert(data.message || "Erro ao salvar registro.");
+      return;
+    }
+
+    this.reset();
+    await loadRecords();
+  });
+
+  function changeMonth(offset) {
+    currentMonth += offset;
+    if (currentMonth < 1) {
+      currentMonth = 12;
+      currentYear -= 1;
+    }
+    if (currentMonth > 12) {
+      currentMonth = 1;
+      currentYear += 1;
+    }
+    loadRecords();
+  }
+
+  document.getElementById("entry-prev-month").addEventListener("click", () => changeMonth(-1));
+  document.getElementById("entry-next-month").addEventListener("click", () => changeMonth(1));
+
+  updatePeriodLabels();
+  loadTechnicians();
+  loadRecords();
+</script>
+{% endblock %}

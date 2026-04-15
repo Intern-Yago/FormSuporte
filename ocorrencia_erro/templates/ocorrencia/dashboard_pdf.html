@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatório de Ocorrências</title>
+
+  <style>
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: #fff;
+      color: #000;
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin-top: 30px;
+      border-bottom: 2px solid #000;
+      padding-bottom: 4px;
+    }
+
+    h3 {
+      margin-top: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 12px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+
+    th {
+      background: #f0f0f0;
+      text-align: left;
+    }
+
+    .problem {
+      white-space: pre-wrap;
+    }
+
+    .filters {
+      font-size: 12px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Relatório de Ocorrências</h1>
+<div class="subtitle">
+  EAATA • {{ now|date:"d/m/Y H:i" }}
+</div>
+
+<div class="filters">
+  <strong>Responsável:</strong> {{ filters.responsible }} |
+  <strong>Status:</strong> {{ filters.status }} |
+  <strong>País:</strong> {{ filters.country }}
+</div>
+
+{% regroup records by responsible as responsaveis %}
+
+{% for resp in responsaveis %}
+  <h2>{{ resp.grouper|default:"Sem responsável" }}</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Código</th>
+        <th>Status</th>
+        <th>País</th>
+        <th>Problema Detectado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in resp.list %}
+      <tr>
+        <td>{{ r.data|date:"d/m/Y" }}</td>
+        <td>{{ r.codigo_externo }}</td>
+        <td>{{ r.get_status_display }}</td>
+        <td>{{ r.country.name }}</td>
+        <td class="problem">{{ r.problem_detected_en|default:r.problem_detected }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endfor %}
+
+
+</body>
+</html>

@@ -1,0 +1,441 @@
+{% extends 'painel/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard Comercial EAATA{% endblock %}
+
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --d-bg: #f8fafc;
+    --d-card: #ffffff;
+    --d-border: #e2e8f0;
+    --d-text: #1e293b;
+    --d-muted: #64748b;
+    --d-accent: #6366f1;
+    --c-emerald: #10b981;
+    --c-blue: #3b82f6;
+    --c-violet: #8b5cf6;
+    --c-amber: #f59e0b;
+    --c-rose: #f43f5e;
+    --c-cyan: #06b6d4;
+  }
+
+  .content { padding: 0 !important; background: var(--d-bg); }
+  .dash-wrapper { display: flex; flex-direction: column; min-height: 100vh; color: var(--d-text); font-family: 'Inter', sans-serif; }
+  
+  .dash-header { height: 64px; border-bottom: 1px solid var(--d-border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: #fff; flex-shrink: 0; }
+  .filter-bar { background: #fff; border-bottom: 1px solid var(--d-border); padding: 12px 24px; display: flex; gap: 12px; align-items: flex-end; flex-shrink: 0; flex-wrap: wrap; }
+  
+  /* Dropdowns */
+  .custom-dropdown { position: relative; width: 150px; }
+  .drop-label { font-size: 10px; font-weight: 700; color: var(--d-muted); text-transform: uppercase; margin-bottom: 4px; }
+  .drop-btn { width: 100%; background: #fff; border: 1px solid var(--d-border); color: var(--d-text); padding: 8px 12px; border-radius: 8px; font-size: 12px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 36px; transition: all 0.2s; }
+  .drop-btn:hover { border-color: var(--d-accent); }
+  .drop-menu { position: absolute; top: calc(100% + 5px); left: 0; width: 260px; background: #fff; border: 1px solid var(--d-border); border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); z-index: 100; display: none; flex-direction: column; overflow: hidden; }
+  .drop-menu.show { display: flex; }
+  .drop-search-wrap { padding: 8px; background: #f8fafc; border-bottom: 1px solid var(--d-border); }
+  .drop-search { width: 100%; border: 1px solid var(--d-border); padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none; }
+  .drop-list { max-height: 240px; overflow-y: auto; }
+  .drop-item { padding: 8px 12px; font-size: 13px; display: flex; align-items: center; gap: 10px; cursor: pointer; color: var(--d-text); transition: 0.2s; }
+  .drop-item:hover { background: #f1f5f9; }
+  .drop-item.selected { background: rgba(99, 102, 241, 0.05); color: var(--d-accent); font-weight: 600; }
+  .drop-item div { width: 14px; height: 14px; border: 2px solid var(--d-border); border-radius: 4px; flex-shrink: 0; }
+  .drop-item.selected div { background: var(--d-accent); border-color: var(--d-accent); }
+  .btn-clear-group { font-size: 11px; font-weight: 700; color: #ef4444; background: transparent; border: none; cursor: pointer; padding: 10px; }
+
+  .active-filters-area { padding: 8px 24px; display: flex; flex-wrap: wrap; gap: 8px; background: #f8fafc; min-height: 10px; border-bottom: 1px solid var(--d-border); }
+  .filter-badge { background: #fff; border: 1px solid var(--d-border); color: var(--d-text); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+  .filter-badge span { cursor: pointer; color: #ef4444; font-size: 14px; font-weight: bold; }
+
+  .dash-scroll { padding: 24px; display: flex; flex-direction: column; gap: 24px; overflow-y: auto; flex: 1; }
+
+  /* Metric Cards */
+  .metric-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; }
+  @media (max-width: 1400px) { .metric-grid { grid-template-columns: repeat(3, 1fr); } }
+  .metric-card { position: relative; overflow: hidden; background: #fff; border: 1px solid var(--d-border); border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .metric-stripe { position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+  .metric-title { font-size: 11px; font-weight: 700; color: var(--d-muted); text-transform: uppercase; margin-bottom: 6px; }
+  .metric-value-big { font-size: 24px; font-weight: 800; color: var(--d-text); }
+  .metric-value-small { font-size: 12px; color: var(--d-muted); margin-top: 2px; }
+
+  /* Charts */
+  .row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  @media (max-width: 1100px) { .row-grid { grid-template-columns: 1fr; } }
+  .card-box { background: #fff; border: 1px solid var(--d-border); border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .card-header { padding: 16px 20px; border-bottom: 1px solid var(--d-border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--d-text); display: flex; align-items: center; gap: 8px; }
+  .card-body { padding: 20px; flex: 1; min-height: 300px; }
+
+  /* Toggles */
+  .toggle-group { background: #f1f5f9; border: 1px solid var(--d-border); padding: 2px; border-radius: 8px; display: inline-flex; }
+  .toggle-btn { padding: 6px 12px; border-radius: 6px; border: none; background: transparent; color: var(--d-muted); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+  .toggle-btn.active { background: #fff; color: var(--d-accent); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+  .toggle-btn svg { width: 14px; height: 14px; }
+
+  /* Ícones SVG Ajustados (Não cortam) */
+  .icon-svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; display: inline-block; overflow: visible; }
+  
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { text-align: left; padding: 12px; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 10px; border-bottom: 1px solid var(--d-border); cursor: pointer; }
+  th.active { color: var(--d-accent); }
+  td { padding: 12px; border-bottom: 1px solid var(--d-border); color: var(--d-text); }
+  
+  .progress-wrap { display: flex; align-items: center; gap: 8px; width: 100%; }
+  .progress-bg { flex: 1; height: 6px; background: #f1f5f9; border-radius: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--d-accent); border-radius: 10px; }
+  .progress-text { font-size: 11px; color: var(--d-muted); font-weight: 700; width: 35px; }
+
+  .badge { background: #f8fafc; color: var(--d-muted); padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; border: 1px solid var(--d-border); }
+  .percent-badge { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 6px; }
+  .pagination { padding: 16px 20px; border-top: 1px solid var(--d-border); display: flex; justify-content: space-between; align-items: center; }
+  .page-btn { min-width: 30px; height: 30px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; color: var(--d-text); font-size: 12px; cursor: pointer; font-weight: 600; }
+  .page-btn.active { background: var(--d-accent); color: #fff; border: none; }
+
+  .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.8); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .btn-primary { background: var(--d-accent); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; cursor: pointer; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="loading-overlay" id="global-loader"><div style="color:var(--d-accent); font-weight:800; font-size:18px;">Processando...</div></div>
+
+<div class="dash-wrapper">
+  <header class="dash-header">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <svg class="icon-svg" style="color:var(--d-accent); width:24px; height:24px;" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+      <h1 style="font-size:18px; font-weight:800;">Dashboard de Vendas</h1>
+    </div>
+    <div style="display:flex; gap:12px;">
+      <button class="drop-btn" id="btn-reset-all" style="width:auto;"><svg class="icon-svg" style="width:14px; height:14px; margin-right:6px;" viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Limpar Filtros</button>
+      <button class="drop-btn" id="btn-export-full" style="width:auto;">📦 CSV Geral</button>
+      <button class="btn-primary" id="btn-refresh">Atualizar</button>
+    </div>
+  </header>
+
+  <div class="filter-bar">
+    <!-- Vendedores Dropdown -->
+    <div class="custom-dropdown" id="drop-vendedores">
+      <div class="drop-label">Vendedor</div>
+      <div class="drop-btn"><span>Selecionar...</span> <svg class="icon-svg" style="width:12px;" viewBox="0 0 24 24"><path d="m6 9 6 6 6-9"/></svg></div>
+      <div class="drop-menu">
+        <div class="drop-search-wrap"><input type="text" class="drop-search" placeholder="Pesquisar..."></div>
+        <div class="drop-list">{% for v in filters.vendedores %}<div class="drop-item" data-val="{{ v }}"><div></div> {{ v }}</div>{% endfor %}</div>
+        <div class="drop-footer"><button class="btn-clear-group" data-type="vendedores">Limpar</button></div>
+      </div>
+    </div>
+
+    <!-- Produtos Dropdown -->
+    <div class="custom-dropdown" id="drop-produtos">
+      <div class="drop-label">Produto</div>
+      <div class="drop-btn"><span>Selecionar...</span> <svg class="icon-svg" style="width:12px;" viewBox="0 0 24 24"><path d="m6 9 6 6 6-9"/></svg></div>
+      <div class="drop-menu">
+        <div class="drop-search-wrap"><input type="text" class="drop-search" placeholder="Pesquisar..."></div>
+        <div class="drop-list">{% for p in filters.produtos %}<div class="drop-item" data-val="{{ p }}"><div></div> {{ p }}</div>{% endfor %}</div>
+        <div class="drop-footer"><button class="btn-clear-group" data-type="produtos">Limpar</button></div>
+      </div>
+    </div>
+
+    <!-- Estados Dropdown -->
+    <div class="custom-dropdown" id="drop-estados">
+      <div class="drop-label">Estado</div>
+      <div class="drop-btn"><span>Selecionar...</span> <svg class="icon-svg" style="width:12px;" viewBox="0 0 24 24"><path d="m6 9 6 6 6-9"/></svg></div>
+      <div class="drop-menu">
+        <div class="drop-search-wrap"><input type="text" class="drop-search" placeholder="Filtrar UF..."></div>
+        <div class="drop-list">{% for e in filters.estados %}<div class="drop-item" data-val="{{ e }}"><div></div> {{ e }}</div>{% endfor %}</div>
+        <div class="drop-footer"><button class="btn-clear-group" data-type="estados">Limpar</button></div>
+      </div>
+    </div>
+
+    <!-- Regiões Dropdown -->
+    <div class="custom-dropdown" id="drop-regioes">
+      <div class="drop-label">Região</div>
+      <div class="drop-btn"><span>Selecionar...</span> <svg class="icon-svg" style="width:12px;" viewBox="0 0 24 24"><path d="m6 9 6 6 6-9"/></svg></div>
+      <div class="drop-menu">
+        <div class="drop-search-wrap"><input type="text" class="drop-search" placeholder="Pesquisar..."></div>
+        <div class="drop-list">{% for r in filters.regioes %}<div class="drop-item" data-val="{{ r }}"><div></div> {{ r }}</div>{% endfor %}</div>
+        <div class="drop-footer"><button class="btn-clear-group" data-type="regioes">Limpar</button></div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:4px;">
+      <div class="drop-label">Período</div>
+      <div style="display:flex; gap:8px;">
+        <input type="month" id="f-inicio" style="border:1px solid var(--d-border); border-radius:8px; padding:7px 10px; font-size:12px; outline:none; height:36px;">
+        <input type="month" id="f-fim" style="border:1px solid var(--d-border); border-radius:8px; padding:7px 10px; font-size:12px; outline:none; height:36px;">
+      </div>
+    </div>
+  </div>
+
+  <div class="active-filters-area" id="active-badges"></div>
+
+  <div class="dash-scroll">
+    <!-- Metric Cards -->
+    <div class="metric-grid">
+      <div class="metric-card"><div class="metric-stripe" style="background:var(--c-emerald)"></div><div class="metric-title">Receita Total</div><div class="metric-value-big" id="m-valor-big">R$ 0,0M</div><div class="metric-value-small" id="m-valor-small">R$ 0,00</div></div>
+      <div class="metric-card"><div class="metric-stripe" style="background:var(--c-blue)"></div><div class="metric-title">Itens Vendidos</div><div class="metric-value-big" id="m-qtd-big">0</div><div class="metric-value-small">unidades</div></div>
+      <div class="metric-card"><div class="metric-stripe" style="background:var(--c-violet)"></div><div class="metric-title">Registros</div><div class="metric-value-big" id="m-registros-big">0</div><div class="metric-value-small">transações</div></div>
+      <div class="metric-card"><div class="metric-stripe" style="background:var(--c-amber)"></div><div class="metric-title">Vendedores</div><div class="metric-value-big" id="m-vendedores-big">0</div><div class="metric-value-small">ativos</div></div>
+      <div class="metric-card"><div class="metric-stripe" style="background:var(--c-rose)"></div><div class="metric-title">Estados</div><div class="metric-value-big" id="m-estados-big">0</div><div class="metric-value-small">atendidos</div></div>
+      <div class="metric-card"><div class="metric-stripe" style="background:var(--c-cyan)"></div><div class="metric-title">Clientes Únicos</div><div class="metric-value-big" id="m-clientes-big">0</div><div class="metric-value-small">cadastrados</div></div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row-grid">
+      <div class="card-box">
+        <div class="card-header">
+          <div class="card-title"><svg class="icon-svg" style="color:var(--c-blue)" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Geográfico</div>
+          <div style="display:flex; gap:6px;">
+            <div class="toggle-group" id="geo-metric-toggle"><button class="toggle-btn active" data-val="valor">Valor</button><button class="toggle-btn" data-val="quantidade">Qtd</button></div>
+            <div class="toggle-group" id="geo-dim-toggle"><button class="toggle-btn active" data-val="estado">UF</button><button class="toggle-btn" data-val="regiao">Região</button></div>
+            <div class="toggle-group" id="geo-type-toggle">
+              <button class="toggle-btn active" data-val="bar" title="Coluna"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20V10M18 20V4M6 20v-4"/></svg></button>
+              <button class="toggle-btn" data-val="pie" title="Pizza"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.21 15.89A10 10 0 1 1 8 2.83M22 12A10 10 0 0 0 12 2v10z"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body"><canvas id="chart-geo"></canvas></div>
+      </div>
+
+      <div class="card-box">
+        <div class="card-header">
+          <div class="card-title"><svg class="icon-svg" style="color:var(--c-emerald)" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> Evolução <span id="time-percent" class="percent-badge" style="border:none; margin-left:8px;"></span></div>
+          <div style="display:flex; gap:6px;">
+            <div class="toggle-group" id="time-metric-toggle"><button class="toggle-btn active" data-val="valor">Valor</button><button class="toggle-btn" data-val="quantidade">Qtd</button><button class="toggle-btn" data-val="num_vendas">Vendas</button></div>
+            <div class="toggle-group" id="time-type-toggle">
+              <button class="toggle-btn active" data-val="line" title="Linha"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m19 8-6 6-4-4-6 6"/></svg></button>
+              <button class="toggle-btn" data-val="area" title="Área"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 20H2V4l10 10L22 4v16z"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="card-body"><canvas id="chart-time"></canvas></div>
+      </div>
+    </div>
+
+    <div class="row-grid">
+      <div class="card-box">
+        <div class="card-header"><div class="card-title"><svg class="icon-svg" style="color:var(--c-amber)" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Top 10 Produtos</div></div>
+        <div class="card-body"><canvas id="chart-top-products"></canvas></div>
+      </div>
+      <div class="card-box">
+        <div class="card-header">
+          <div class="card-title"><svg class="icon-svg" style="color:var(--c-blue)" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg> Produtos Mais Vendidos <span id="count-products" style="font-size:11px; color:var(--d-muted); font-weight:400; margin-left:6px;"></span></div>
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="search-product" style="border:1px solid var(--d-border); border-radius:8px; padding:6px 10px; font-size:12px; outline:none; width:160px;" placeholder="Filtrar...">
+            <button class="drop-btn" id="btn-export-products" style="width:auto;">CSV</button>
+          </div>
+        </div>
+        <div style="flex:1; overflow-x:auto;"><table id="table-products"><thead><tr><th data-key="produto">Produto <span>↕</span></th><th data-key="quantidade">Qtd <span>↕</span></th><th data-key="valor">Receita <span>↕</span></th><th>Participação</th></tr></thead><tbody></tbody></table></div>
+        <div class="pagination" id="pag-products"></div>
+      </div>
+    </div>
+
+    <div class="card-box">
+      <div class="card-header">
+        <div class="card-title"><svg class="icon-svg" style="color:var(--c-cyan)" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Vendas por Vendedor <span id="count-sellers" style="font-size:11px; color:var(--d-muted); font-weight:400; margin-left:6px;"></span></div>
+        <div style="display:flex; gap:10px;">
+          <input type="text" id="search-seller" style="border:1px solid var(--d-border); border-radius:8px; padding:6px 10px; font-size:12px; outline:none; width:180px;" placeholder="Buscar vendedor...">
+          <button class="drop-btn" id="btn-export-sellers" style="width:auto;">CSV</button>
+        </div>
+      </div>
+      <div style="flex:1; overflow-x:auto;"><table id="table-sellers"><thead><tr><th>#</th><th>Vendedor</th><th data-key="num_vendas">Nº Vendas <span>↕</span></th><th data-key="quantidade">Qtd Itens <span>↕</span></th><th data-key="valor">Valor Total <span>↕</span></th><th>Top Produtos</th></tr></thead><tbody></tbody></table></div>
+      <div class="pagination" id="pag-sellers"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  let rawData = {};
+  let charts = {};
+  const mesesCurto = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  const state = { geoMetric: 'valor', geoDim: 'estado', geoType: 'bar', timeMetric: 'valor', timeType: 'line', filters: { vendedores: [], produtos: [], estados: [], regioes: [], inicio: '', fim: '' } };
+  const tables = { products: { page: 1, pageSize: 15, sortKey: 'valor', sortDir: -1, search: '' }, sellers: { page: 1, pageSize: 15, sortKey: 'valor', sortDir: -1, search: '' } };
+  const chartColors = ['#6366f1', '#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#f43f5e', '#06b6d4', '#ec4899', '#2dd4bf', '#fbbf24'];
+
+  function formatarPeriodo(p) {
+    if(!p) return "";
+    let s = String(p).replace(/\D/g, ''); // "2023-01" -> "202301"
+    if(s.length < 5) return p;
+    // Pega o ano (4 dígitos) e o mês (últimos 2 dígitos)
+    let a = s.substring(2, 4);
+    let mStr = s.substring(s.length - 2);
+    let mIdx = parseInt(mStr, 10) - 1;
+    return `${mesesCurto[mIdx] || '??'}/${a}`;
+  }
+
+  async function load() {
+    document.getElementById('global-loader').style.display = 'flex';
+    try {
+      const p = new URLSearchParams();
+      Object.keys(state.filters).forEach(k => {
+        if(Array.isArray(state.filters[k])) {
+          // Sincronizar nomes de campos para o backend
+          const key = k === 'vendedores' ? 'vendedores[]' : (k === 'produtos' ? 'produtos[]' : (k === 'estados' ? 'estados[]' : 'regioes[]'));
+          state.filters[k].forEach(v => p.append(key, v));
+        }
+        else if(state.filters[k]) p.append(k==='inicio'?'anoMesInicio':(k==='fim'?'anoMesFim':k), state.filters[k]);
+      });
+      const resp = await fetch(`{% url 'kpis:api_data_comercial' %}?${p.toString()}`);
+      rawData = await resp.json();
+      update();
+    } finally { document.getElementById('global-loader').style.display = 'none'; }
+  }
+
+  function update() {
+    if(!rawData.summary) return;
+    const s = rawData.summary;
+    document.getElementById('m-valor-big').textContent = formatBigCurrency(s.total_valor);
+    document.getElementById('m-valor-small').textContent = formatFullCurrency(s.total_valor);
+    document.getElementById('m-qtd-big').textContent = formatNum(s.total_quantidade);
+    document.getElementById('m-registros-big').textContent = formatNum(s.total_registros);
+    document.getElementById('m-vendedores-big').textContent = formatNum(s.total_vendedores);
+    document.getElementById('m-estados-big').textContent = formatNum(s.total_estados);
+    document.getElementById('m-clientes-big').textContent = formatNum(s.total_clientes_unicos);
+
+    const time = rawData.sales_over_time;
+    const el = document.getElementById('time-percent');
+    if(time.length >= 2) {
+      // Comparar o primeiro mês visível com o último para ver a evolução do período
+      const first = time[0][state.timeMetric];
+      const last = time[time.length-1][state.timeMetric];
+      const diff = first > 0 ? ((last - first) / first) * 100 : 0;
+      el.style.display = 'inline-block';
+      el.textContent = (diff >= 0 ? '+' : '') + diff.toFixed(1) + '%';
+      el.style.background = diff >= 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+      el.style.color = diff >= 0 ? '#10b981' : '#ef4444';
+    } else el.style.display = 'none';
+
+    renderGeo(); renderTime(); renderTop(); renderTables();
+  }
+
+  function renderGeo() {
+    if(charts.geo) charts.geo.destroy();
+    const ds = state.geoDim === 'estado' ? rawData.sales_by_state : rawData.sales_by_region;
+    const total = ds.reduce((acc, curr) => acc + curr[state.geoMetric], 0);
+    charts.geo = new Chart(document.getElementById('chart-geo').getContext('2d'), {
+      type: state.geoType === 'pie' ? 'doughnut' : 'bar',
+      data: { labels: ds.map(d => state.geoDim === 'estado' ? d.sigla : d.regiao), datasets: [{ data: ds.map(d => d[state.geoMetric]), backgroundColor: chartColors, borderWidth: 0, borderRadius: state.geoType === 'bar' ? 6 : 0 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: state.geoType === 'pie', position: 'right', labels: { color: '#64748b', font: { weight: '600' } } },
+          tooltip: { callbacks: { label: (ctx) => [` Valor: ${state.geoMetric==='valor'?formatFullCurrency(ctx.raw):formatNum(ctx.raw)}`, ` Participação: ${total>0?((ctx.raw/total)*100).toFixed(1)+'%':'0%'}`] } }
+        },
+        scales: state.geoType === 'bar' ? { y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => formatNumCompact(v) } }, x: { grid: { display: false } } } : {}
+      }
+    });
+  }
+
+  function renderTime() {
+    if(charts.time) charts.time.destroy();
+    charts.time = new Chart(document.getElementById('chart-time').getContext('2d'), {
+      type: 'line',
+      data: { labels: rawData.sales_over_time.map(d => formatarPeriodo(d.periodo)), datasets: [{ data: rawData.sales_over_time.map(d => d[state.timeMetric]), borderColor: '#6366f1', borderWidth: 3, pointRadius: 4, fill: state.timeType === 'area', backgroundColor: 'rgba(99,102,241,0.1)', tension: 0.4 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => formatNumCompact(v) } }, x: { grid: { display: false } } } }
+    });
+  }
+
+  function renderTop() {
+    if(charts.top) charts.top.destroy();
+    const ds = rawData.sales_by_product.slice(0, 10);
+    charts.top = new Chart(document.getElementById('chart-top-products').getContext('2d'), {
+      type: 'bar',
+      data: { labels: ds.map(d => d.produto.substring(0, 15)+'...'), datasets: [{ data: ds.map(d => d.valor), backgroundColor: chartColors, borderRadius: 4 }] },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#f1f5f9' }, ticks: { callback: v => formatNumCompact(v) } }, y: { grid: { display: false } } } }
+    });
+  }
+
+  function renderTables() {
+    ['products', 'sellers'].forEach(id => {
+      const t = tables[id], source = id === 'products' ? rawData.sales_by_product : rawData.sales_by_seller;
+      let filtered = source.filter(x => (id === 'products' ? x.produto : x.vendedor).toLowerCase().includes(t.search.toLowerCase()));
+      filtered.sort((a, b) => (a[t.sortKey] > b[t.sortKey] ? 1 : -1) * t.sortDir);
+      document.getElementById(`count-${id}`).textContent = `(${filtered.length} total)`;
+      const totalVal = filtered.reduce((acc, curr) => acc + curr.valor, 0), totalPages = Math.ceil(filtered.length / t.pageSize) || 1;
+      const slice = filtered.slice((t.page-1)*t.pageSize, t.page*t.pageSize);
+      const tbody = document.querySelector(`#table-${id} tbody`); tbody.innerHTML = '';
+      slice.forEach((item, i) => {
+        const tr = document.createElement('tr');
+        if(id === 'products') {
+          const perc = totalVal > 0 ? ((item.valor / totalVal) * 100).toFixed(1) : 0;
+          tr.innerHTML = `<td>${item.produto}</td><td>${formatNum(item.quantidade)}</td><td style="font-weight:700;">${formatFullCurrency(item.valor)}</td><td><div class="progress-wrap"><div class="progress-bg"><div class="progress-fill" style="width:${perc}%"></div></div><div class="progress-text">${perc}%</div></div></td>`;
+        } else {
+          const rank = (t.page-1)*t.pageSize + i + 1, bgs = item.top_produtos.slice(0,2).map(p => `<span class="badge" title="${p}">${p.substring(0,12)}...</span>`).join('');
+          tr.innerHTML = `<td style="color:#94a3b8; font-weight:700;">${rank}</td><td style="font-weight:600;">${item.vendedor}</td><td>${formatNum(item.num_vendas)}</td><td>${formatNum(item.quantidade)}</td><td><span style="color:#10b981; font-weight:700;">${formatFullCurrency(item.valor)}</span></td><td><div style="display:flex;gap:4px;">${bgs}</div></td>`;
+        }
+        tbody.appendChild(tr);
+      });
+      renderPagination(id, t.page, totalPages, filtered.length); updateSortIcons(id);
+    });
+  }
+
+  function renderPagination(id, page, totalPages, total) {
+    const el = document.getElementById(`pag-${id}`);
+    let btns = `<button class="page-btn" onclick="setPage('${id}', ${page-1})" ${page===1?'disabled':''}>‹</button>`;
+    let start = Math.max(1, page-2), end = Math.min(totalPages, start+4);
+    if(end-start < 4) start = Math.max(1, end - 4);
+    for(let i=start; i<=end; i++) btns += `<button class="page-btn ${i===page?'active':''}" onclick="setPage('${id}', ${i})">${i}</button>`;
+    btns += `<button class="page-btn" onclick="setPage('${id}', ${page+1})" ${page===totalPages?'disabled':''}>›</button>`;
+    el.innerHTML = `<div class="page-info">Página ${page} de ${totalPages} (${total} total)</div><div class="page-btns">${btns}</div>`;
+  }
+
+  function setupDropdowns() {
+    document.querySelectorAll('.custom-dropdown').forEach(drop => {
+      const btn = drop.querySelector('.drop-btn'), menu = drop.querySelector('.drop-menu'), search = drop.querySelector('.drop-search'), list = drop.querySelector('.drop-list'), type = drop.id.split('-')[1];
+      btn.onclick = (e) => { e.stopPropagation(); document.querySelectorAll('.drop-menu').forEach(m => m !== menu && m.classList.remove('show')); menu.classList.toggle('show'); if(menu.classList.contains('show')) search.focus(); };
+      search.oninput = (e) => { const v = e.target.value.toLowerCase(); list.querySelectorAll('.drop-item').forEach(i => i.style.display = i.textContent.toLowerCase().includes(v) ? 'flex' : 'none'); };
+      list.querySelectorAll('.drop-item').forEach(item => { item.onclick = (e) => { e.stopPropagation(); const val = item.dataset.val, idx = state.filters[type].indexOf(val); if(idx > -1) state.filters[type].splice(idx, 1); else state.filters[type].push(val); updateDropdownUI(drop, type); renderBadges(); load(); }; });
+      drop.querySelector('.btn-clear-group').onclick = (e) => { e.stopPropagation(); state.filters[type] = []; updateDropdownUI(drop, type); renderBadges(); load(); };
+    });
+    document.onclick = () => document.querySelectorAll('.drop-menu').forEach(m => m.classList.remove('show'));
+    document.getElementById('f-inicio').onchange = (e) => { state.filters.inicio = e.target.value; renderBadges(); load(); };
+    document.getElementById('f-fim').onchange = (e) => { state.filters.fim = e.target.value; renderBadges(); load(); };
+    document.getElementById('btn-reset-all').onclick = () => { Object.keys(state.filters).forEach(k => state.filters[k] = Array.isArray(state.filters[k]) ? [] : ''); document.getElementById('f-inicio').value = ''; document.getElementById('f-fim').value = ''; updateAllDropdowns(); renderBadges(); load(); };
+  }
+
+  function updateDropdownUI(drop, type) {
+    const sel = state.filters[type], btnSpan = drop.querySelector('.drop-btn span'), clearBtn = drop.querySelector('.btn-clear-group');
+    btnSpan.textContent = sel.length > 0 ? `${sel.length} selecionado${sel.length>1?'s':''}` : 'Selecionar...';
+    clearBtn.textContent = `Limpar ${sel.length>0?'('+sel.length+')':''}`;
+    drop.querySelectorAll('.drop-item').forEach(item => { const is = sel.includes(item.dataset.val); item.classList.toggle('selected', is); });
+  }
+
+  function updateAllDropdowns() { document.querySelectorAll('.custom-dropdown').forEach(d => updateDropdownUI(d, d.id.split('-')[1])); }
+
+  function renderBadges() {
+    const area = document.getElementById('active-badges'); area.innerHTML = '';
+    Object.keys(state.filters).forEach(type => {
+      const vals = state.filters[type];
+      if(Array.isArray(vals)) vals.forEach(val => { const b = document.createElement('div'); b.className = 'filter-badge'; b.innerHTML = `${val} <span onclick="removeSingleFilter('${type}', '${val}')">×</span>`; area.appendChild(b); });
+      else if(vals) { const b = document.createElement('div'); b.className = 'filter-badge'; b.innerHTML = `${type==='inicio'?'De':'Até'}: ${vals} <span onclick="removeSingleFilter('${type}', '')">×</span>`; area.appendChild(b); }
+    });
+  }
+
+  window.removeSingleFilter = (type, val) => { if(Array.isArray(state.filters[type])) state.filters[type] = state.filters[type].filter(v => v !== val); else state.filters[type] = ''; if(!Array.isArray(state.filters[type])) { let el = document.getElementById(`f-${type}`); if(el) el.value = ''; } let d = document.getElementById(`drop-${type}`); if(d) updateDropdownUI(d, type); renderBadges(); load(); };
+  window.setPage = (id, p) => { tables[id].page = p; renderTables(); };
+  function formatNum(v) { return v.toLocaleString('pt-BR'); }
+  function formatNumCompact(v) { return new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }).format(v); }
+  function formatFullCurrency(v) { return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v); }
+  function formatBigCurrency(v) { if (v >= 1000000) return 'R$ ' + (v/1000000).toFixed(1) + 'M'; if (v >= 1000) return 'R$ ' + (v/1000).toFixed(0) + 'K'; return formatFullCurrency(v); }
+
+  function updateSortIcons(id) {
+    const t = tables[id];
+    document.querySelectorAll(`#table-${id} th[data-key]`).forEach(th => {
+      const key = th.dataset.key, span = th.querySelector('span');
+      if(key === t.sortKey) { th.classList.add('active'); span.innerHTML = t.sortDir === 1 ? ' ↑' : ' ↓'; }
+      else { th.classList.remove('active'); span.innerHTML = ' ↕'; }
+    });
+  }
+
+  document.querySelectorAll('.toggle-btn').forEach(btn => { btn.onclick = (e) => { const b = e.currentTarget, g = b.parentElement; g.querySelectorAll('.toggle-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); const val = b.dataset.val; if(g.id.includes('geo-metric')) state.geoMetric = val; if(g.id.includes('geo-dim')) state.geoDim = val; if(g.id.includes('geo-type')) state.geoType = val; if(g.id.includes('time-metric')) state.timeMetric = val; if(g.id.includes('time-type')) state.timeType = val; update(); }; });
+  document.getElementById('search-product').oninput = (e) => { tables.products.search = e.target.value; tables.products.page = 1; renderTables(); };
+  document.getElementById('search-seller').oninput = (e) => { tables.sellers.search = e.target.value; tables.sellers.page = 1; renderTables(); };
+  document.querySelectorAll('th[data-key]').forEach(th => { th.onclick = () => { const tid = th.closest('table').id.split('-')[1], key = th.dataset.key; if(tables[tid].sortKey === key) tables[tid].sortDir *= -1; else { tables[tid].sortKey = key; tables[tid].sortDir = -1; } renderTables(); }; });
+
+  setupDropdowns();
+  load();
+</script>
+{% endblock %}

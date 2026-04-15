@@ -1,0 +1,917 @@
+{% extends 'painel/base.html' %}
+{% load static %}
+{% load painel_extras %}
+{% block title %}EAATA – Usuários{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{% static 'painel/css/user_manage.css' %}">
+{% endblock %}
+
+{% block content %}
+<h2 style="margin-top:0;">Usuários</h2>
+
+<div class="panel">
+
+  <div class="toolbar">
+    <div class="search">
+      <input id="search-input" type="text" placeholder="Pesquisar por nome, usuário ou e-mail..." autocomplete="off" />
+    </div>
+
+    {% if is_master %}
+      <div class="filter">
+        <select id="filter-role">
+          <option value="">Cargo: Todos</option>
+          <option value="gestor">Apenas Gestor</option>
+          <option value="colaborador">Apenas Colaborador</option>
+        </select>
+      </div>
+
+      <div class="filter">
+        <select id="filter-setor">
+          <option value="">Setor: Todos</option>
+          {# opções serão preenchidas via JS com base nos dados #}
+        </select>
+      </div>
+
+      <div class="counts">
+        <span>Total: <strong id="count-total">0</strong></span>
+        <span>Mostrando: <strong id="count-visible">0</strong></span>
+      </div>
+    {% else %}
+      <div class="counts">
+        <span>Setor: <strong>{{ setor_me }}</strong></span>
+        <span>Total: <strong id="count-total">0</strong></span>
+        <span>Mostrando: <strong id="count-visible">0</strong></span>
+      </div>
+    {% endif %}
+  </div>
+
+  <table class="table" id="users-table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Usuário</th>
+        {% if is_master %}
+          <th>Setor</th>
+          <th>Cargo</th>
+        {% endif %}
+        <th>E-mail</th>
+        <th style="width:300px;">Ações</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for u in users_list %}
+        {% if u.is_active %}
+          {% with p=u.profile %}
+          <tr class="user-row"
+              data-q="{{ u.first_name|default:''|lower }} {{ u.username|lower }} {{ u.email|default:''|lower }}"
+              data-role="{{ p.role|default:'' }}"
+              data-setor="{{ p.setor|default:'' }}"
+              >
+            <td data-label="Nome">{{ u.first_name|default:"-" }}</td>
+            <td data-label="Usuário">{{ u.username }}</td>
+
+            {% if is_master %}
+              <td data-label="Setor"><span class="badge">{{ p.setor|default:"-" }}</span></td>
+              <td data-label="Cargo">
+                <span class="badge">
+                  {% if p.role == 'dono' %}
+                    Dono
+                  {% elif p.role == 'diretor' %}
+                    Diretor
+                  {% elif p.role == 'gestor' %}
+                    Gestor
+                  {% elif p.role == 'ti' %}
+                    TI
+                  {% else %}
+                    Colaborador
+                  {% endif %}
+                </span>
+              </td>
+            {% endif %}
+
+            <td data-label="E-mail">{{ u.email|default:"-" }}</td>
+
+            <td data-label="Ações">
+              <div class="actions">
+                {% if is_master %}
+                <button class="btn" type="button"
+                        data-action="open-systems"
+                        data-user-id="{{ u.id }}"
+                        data-username="{{ u.username }}"
+                        data-name="{{ u.first_name|default:u.username }}"
+                        data-selected="{% with sel=user_overrides|get_item:u.id %}{% if sel %}{{ sel|join:',' }}{% endif %}{% endwith %}">
+                    Acessos
+                </button>
+                {% endif %}
+
+                <button class="btn btn-primary" type="button"
+                        data-action="open-dashboard"
+                        data-user-id="{{ u.id }}"
+                        data-username="{{ u.username }}"
+                        data-name="{{ u.first_name|default:u.username }}">
+                    Dashboard
+                </button>
+
+
+                <button class="btn" type="button"
+                  data-action="open-edit"
+                  data-user-id="{{ u.id }}"
+                  data-username="{{ u.username }}"
+                  data-name="{{ u.first_name|default:u.username }}"
+                  data-email="{{ u.email|default:'' }}"
+                  data-cpf="{{ p.cpf_cnpj|default:'' }}"
+                  data-contato="{{ p.contato|default:'' }}"
+                  data-area="{{ p.area|default:'' }}"
+                  data-role="{{ p.role|default:'' }}"
+                  data-setor="{{ p.setor|default:'' }}"
+                  data-grupo-comercial="{{ p.grupo_comercial|default:'' }}"
+                  data-tipo-usuario="{{ u.tipo_usuario_atual|default:'responsavel' }}"
+                  data-paises="{{ u.paises_ids_csv|default:'' }}">
+                  Editar
+                </button>
+
+                <button class="btn" type="button"
+                        data-action="open-pass"
+                        data-user-id="{{ u.id }}"
+                        data-username="{{ u.username }}"
+                        data-name="{{ u.first_name|default:u.username }}">
+                  Alterar senha
+                </button>
+                
+                <form method="post" action="{% url 'painel_user_delete' u.id %}"
+                      onsubmit="return confirm('Tem certeza que deseja desativar este usuário?');">
+                  {% csrf_token %}
+                  <button class="btn btn-danger" type="submit">Excluir</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endwith %}
+        {% endif %}
+      {% empty %}
+        <tr><td colspan="6">Nenhum usuário encontrado.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Modal alterar senha -->
+<div class="modal-backdrop" id="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>Alterar senha</h3>
+    <div style="color:var(--muted); font-size:13px; margin-bottom:10px;">
+      Usuário: <strong id="modal-user-label">—</strong>
+    </div>
+
+    <form method="post" id="modal-form" action="">
+      {% csrf_token %}
+      <div class="row">
+        <label style="color:var(--muted); font-size:13px;">Nova senha</label>
+        <input type="password" name="new_password1" required />
+      </div>
+      <div class="row">
+        <label style="color:var(--muted); font-size:13px;">Confirmar nova senha</label>
+        <input type="password" name="new_password2" required />
+      </div>
+
+      <div class="footer">
+        <button class="btn" type="button" id="modal-cancel">Cancelar</button>
+        <button class="btn" type="submit">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal editar usuário -->
+<div class="modal-backdrop" id="edit-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>Editar informações</h3>
+    <div style="color:var(--muted); font-size:13px; margin-bottom:10px;">
+      Usuário: <strong id="edit-user-label">—</strong>
+    </div>
+
+    <form method="post" id="edit-form" action="">
+      {% csrf_token %}
+
+      <div class="row">
+        <label style="color:var(--muted); font-size:13px;">E-mail</label>
+        <input type="email" name="email" id="edit-email" placeholder="email@dominio.com" />
+      </div>
+
+      <div class="row">
+        <label style="color:var(--muted); font-size:13px;">CPF/CNPJ</label>
+        <input type="text" name="cpf_cnpj" id="edit-cpf" placeholder="Somente números" />
+      </div>
+
+      <div class="row">
+        <label style="color:var(--muted); font-size:13px;">Contato</label>
+        <input type="text" name="contato" id="edit-contato" placeholder="(00) 00000-0000" />
+      </div>
+
+      <div class="row">
+        <label style="color:var(--muted); font-size:13px;">Área</label>
+        <input type="text" name="area" id="edit-area-text" placeholder="Ex.: Região, carteira, squad..." />
+        <select name="area" id="edit-area-select" style="display:none;" disabled>
+          <option value="">Selecione a categoria...</option>
+          {% for v, lbl in areas_suporte %}
+            <option value="{{ v }}">{{ lbl }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {% if is_master %}
+        <div class="row">
+          <label style="color:var(--muted); font-size:13px;">Cargo</label>
+          <select name="role" id="edit-role">
+            <option value="dono">Dono</option>
+            <option value="diretor">Diretor</option>
+            <option value="gestor">Gestor</option>
+            <option value="colaborador">Colaborador</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label style="color:var(--muted); font-size:13px;">Setor</label>
+          <select name="setor" id="edit-setor">
+            <option value="marketing">Marketing</option>
+            <option value="financeiro">Financeiro</option>
+            <option value="suporte">Suporte</option>
+            <option value="ti">TI</option>
+            <option value="comercial">Comercial</option>
+          </select>
+        </div>
+      {% else %}
+        <input type="hidden" name="role" id="edit-role" value="colaborador">
+        <input type="hidden" name="setor" id="edit-setor" value="">
+      {% endif %}
+      <div class="row" id="edit-grupo-comercial-row" style="display:none;">
+        <label style="color:var(--muted); font-size:13px;">Grupo comercial</label>
+        <select name="grupo_comercial" id="edit-grupo-comercial">
+          <option value="">Selecione</option>
+          {% for v, lbl in grupos_comerciais %}
+            <option value="{{ v }}">{{ lbl }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="edit-suporte-extras" style="display:none;">
+        <div class="row">
+          <label style="color:var(--muted); font-size:13px;">Tipo de usuário (Técnicos)</label>
+          <div class="radio-group">
+            <div class="radio-options">
+              <div class="radio-item">
+                <input type="radio" id="edit-tipo-responsavel" name="tipo_usuario" value="responsavel">
+                <label for="edit-tipo-responsavel">Responsável</label>
+              </div>
+
+              <div class="radio-item">
+                <input type="radio" id="edit-tipo-reporte" name="tipo_usuario" value="reporte">
+                <label for="edit-tipo-reporte">Reporte</label>
+              </div>
+
+              <div class="radio-item">
+                <input type="radio" id="edit-tipo-semi-admin" name="tipo_usuario" value="semi_admin">
+                <label for="edit-tipo-semi-admin">Sub Gestor</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkbox-group">
+          <div class="checkbox-group-header">
+            <strong>Países responsáveis:</strong>
+            <span class="selected-count" id="edit-selected-count-extras">0 selecionados</span>
+          </div>
+
+          {% for pais in paises %}
+            <div class="checkbox-item">
+              <input type="checkbox" id="edit-pais-{{ pais.id }}" name="paises_responsavel" value="{{ pais.id }}">
+              <label for="edit-pais-{{ pais.id }}">{{ pais.name }}</label>
+            </div>
+          {% empty %}
+            <p>Nenhum país disponível.</p>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn" type="button" id="edit-cancel">Cancelar</button>
+        <button class="btn" type="submit">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if is_master %}
+<!-- Modal Acessos -->
+<div class="modal-backdrop" id="systems-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true">
+    <h3>Acessos do usuário</h3>
+    <div style="color:var(--muted); font-size:13px; margin-bottom:10px;">
+      Usuário: <strong id="systems-user-label">—</strong>
+    </div>
+
+    <form method="post" id="systems-form" action="">
+      {% csrf_token %}
+
+      <div style="max-height: 320px; overflow:auto; border:1px solid var(--stroke); border-radius:12px; padding:10px;">
+        {% for s in systems_list %}
+          <label style="display:flex; align-items:center; gap:10px; padding:8px 6px; border-bottom:1px solid #f1f5f9;">
+            <input type="checkbox" name="systems[]" value="{{ s.id }}" />
+            <span style="font-weight:800;">{{ s.name }}</span>
+            <span style="color:var(--muted); font-size:12px;">({{ s.id }})</span>
+          </label>
+        {% endfor %}
+      </div>
+
+      <div class="footer" style="justify-content:space-between;">
+        <button class="btn" type="button" id="systems-clear">Limpar</button>
+        <div style="display:flex; gap:10px;">
+          <button class="btn" type="button" id="systems-cancel">Cancelar</button>
+          <button class="btn" type="submit">Salvar</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+<script>
+  // Helpers
+  function normalize(s){
+    return (s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+  }
+
+  // Filtros / busca
+  (function(){
+    const input = document.getElementById('search-input');
+    const roleSel = document.getElementById('filter-role');
+    const setorSel = document.getElementById('filter-setor');
+    const rows = Array.from(document.querySelectorAll('.user-row'));
+    const countTotal = document.getElementById('count-total');
+    const countVisible = document.getElementById('count-visible');
+
+    if (countTotal) countTotal.textContent = String(rows.length);
+
+    if (setorSel){
+      const set = new Set();
+      rows.forEach(r => {
+        const s = (r.dataset.setor || '').trim();
+        if (s) set.add(s);
+      });
+
+      Array.from(set).sort().forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s;
+        opt.textContent = `Setor: ${s}`;
+        setorSel.appendChild(opt);
+      });
+    }
+
+    function applyFilters(){
+      const q = normalize(input ? input.value.trim() : '');
+      const roleF = roleSel ? (roleSel.value || '') : '';
+      const setorF = setorSel ? (setorSel.value || '') : '';
+
+      let visible = 0;
+
+      rows.forEach(row => {
+        const hay = normalize(row.getAttribute('data-q') || '');
+        const role = (row.dataset.role || '').trim();
+        const setor = (row.dataset.setor || '').trim();
+
+        const okQ = (!q || hay.includes(q));
+        const okRole = (!roleF || role === roleF);
+        const okSetor = (!setorF || setor === setorF);
+
+        const show = okQ && okRole && okSetor;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+      });
+
+      if (countVisible) countVisible.textContent = String(visible);
+    }
+
+    if (input) input.addEventListener('input', applyFilters);
+    if (roleSel) roleSel.addEventListener('change', applyFilters);
+    if (setorSel) setorSel.addEventListener('change', applyFilters);
+
+    applyFilters();
+  })();
+
+  // Toast fallback
+  if (typeof showToast !== 'function') {
+    window.showToast = function(message, type){
+      alert(message || (type === 'success' ? 'Sucesso' : 'Erro'));
+    };
+  }
+
+  // 🔐 modal alterar senha
+  (function(){
+    const backdrop = document.getElementById('modal-backdrop');
+    const form = document.getElementById('modal-form');
+    const label = document.getElementById('modal-user-label');
+    const cancel = document.getElementById('modal-cancel');
+
+    if (!backdrop || !form || !label || !cancel) return;
+
+    function openModal(userId, username, name){
+      label.textContent = `${name} (${username})`;
+      form.action = "{% url 'painel_user_set_password' 0 %}".replace('/0/', `/${userId}/`);
+      backdrop.style.display = 'flex';
+    }
+
+    function closeModal(){
+      backdrop.style.display = 'none';
+      form.reset();
+    }
+
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('[data-action="open-pass"]');
+      if (!btn) return;
+      openModal(btn.dataset.userId, btn.dataset.username, btn.dataset.name);
+    });
+
+    cancel.addEventListener('click', closeModal);
+
+    backdrop.addEventListener('click', function(e){
+      if (e.target === backdrop) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && backdrop.style.display === 'flex') {
+        closeModal();
+      }
+    });
+
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn ? btn.textContent : 'Salvar';
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
+      }
+
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.ok) {
+          showToast(data.message || 'Senha alterada com sucesso.', 'success');
+          closeModal();
+        } else {
+          showToast(data.message || 'Erro ao alterar senha.', 'error');
+        }
+      } catch (err) {
+        showToast('Erro inesperado ao alterar senha.', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
+    });
+  })();
+
+  // ✏️ modal editar usuário
+  (function(){
+    const backdrop = document.getElementById('edit-backdrop');
+    const form = document.getElementById('edit-form');
+    const label = document.getElementById('edit-user-label');
+    const cancel = document.getElementById('edit-cancel');
+
+    const emailInp = document.getElementById('edit-email');
+    const cpfInp = document.getElementById('edit-cpf');
+    const contatoInp = document.getElementById('edit-contato');
+    const areaText = document.getElementById('edit-area-text');
+    const areaSelect = document.getElementById('edit-area-select');
+    const roleInp = document.getElementById('edit-role');
+    const setorInp = document.getElementById('edit-setor');
+
+    const grupoRow = document.getElementById('edit-grupo-comercial-row');
+    const grupoInp = document.getElementById('edit-grupo-comercial');
+
+    const suporteBox = document.getElementById('edit-suporte-extras');
+    const suporteCounter = document.getElementById('edit-selected-count-extras');
+
+    if (!backdrop || !form || !label || !cancel) return;
+
+    function updateSuporteCounter(){
+      if (!suporteCounter || !suporteBox) return;
+      const selected = suporteBox.querySelectorAll('input[name="paises_responsavel"]:checked').length;
+      suporteCounter.textContent = `${selected} selecionado${selected !== 1 ? 's' : ''}`;
+    }
+
+    function toggleConditionalFields(){
+      const roleVal = (roleInp && roleInp.value) ? roleInp.value : 'colaborador';
+      const setorVal = (setorInp && setorInp.value) ? setorInp.value : '';
+
+      const showGrupo = (roleVal === 'colaborador' && setorVal === 'comercial');
+      const showSuporte = (roleVal === 'colaborador' && setorVal === 'suporte');
+
+      const isSuporte = (setorVal === 'suporte');
+      if (isSuporte) {
+        if (areaText) { areaText.style.display = 'none'; areaText.disabled = true; }
+        if (areaSelect) { areaSelect.style.display = ''; areaSelect.disabled = false; }
+      } else {
+        if (areaText) { areaText.style.display = ''; areaText.disabled = false; }
+        if (areaSelect) { areaSelect.style.display = 'none'; areaSelect.disabled = true; }
+      }
+
+      if (grupoRow) grupoRow.style.display = showGrupo ? '' : 'none';
+      if (grupoInp && !showGrupo) grupoInp.value = '';
+
+      if (suporteBox) suporteBox.style.display = showSuporte ? '' : 'none';
+
+      if (!showSuporte && suporteBox) {
+        suporteBox.querySelectorAll('input[name="paises_responsavel"]').forEach(cb => cb.checked = false);
+        const radio = suporteBox.querySelector('input[name="tipo_usuario"][value="responsavel"]');
+        if (radio) radio.checked = true;
+      }
+
+      updateSuporteCounter();
+    }
+
+    function openModal(userId, username, name, email, cpf, contato, area, role, setor, grupoComercial, tipoUsuario, paisesCsv){
+      label.textContent = `${name} (${username})`;
+      form.action = "{% url 'painel_user_update' 0 %}".replace('/0/', `/${userId}/`);
+
+      if (emailInp) emailInp.value = email || '';
+      if (cpfInp) cpfInp.value = cpf || '';
+      if (contatoInp) contatoInp.value = contato || '';
+      if (areaText) areaText.value = area || '';
+      if (areaSelect) areaSelect.value = area || '';
+      if (roleInp) roleInp.value = role || 'colaborador';
+      if (setorInp) setorInp.value = setor || '';
+      if (grupoInp) grupoInp.value = grupoComercial || '';
+
+      const tipo = tipoUsuario || 'responsavel';
+      const radio = form.querySelector(`input[name="tipo_usuario"][value="${tipo}"]`);
+      if (radio) radio.checked = true;
+
+      const selectedPaises = (paisesCsv || '')
+        .split(',')
+        .map(v => v.trim())
+        .filter(Boolean);
+
+      form.querySelectorAll('input[name="paises_responsavel"]').forEach(cb => {
+        cb.checked = selectedPaises.includes(cb.value);
+      });
+
+      toggleConditionalFields();
+      backdrop.style.display = 'flex';
+    }
+
+    function closeModal(){
+      backdrop.style.display = 'none';
+      form.reset();
+      if (grupoRow) grupoRow.style.display = 'none';
+      if (suporteBox) suporteBox.style.display = 'none';
+      updateSuporteCounter();
+    }
+
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('[data-action="open-edit"]');
+      if (!btn) return;
+
+      openModal(
+        btn.dataset.userId,
+        btn.dataset.username,
+        btn.dataset.name,
+        btn.dataset.email,
+        btn.dataset.cpf,
+        btn.dataset.contato,
+        btn.dataset.area,
+        btn.dataset.role,
+        btn.dataset.setor,
+        btn.dataset.grupoComercial,
+        btn.dataset.tipoUsuario,
+        btn.dataset.paises
+      );
+    });
+
+    if (roleInp) roleInp.addEventListener('change', toggleConditionalFields);
+    if (setorInp) setorInp.addEventListener('change', toggleConditionalFields);
+
+    form.querySelectorAll('input[name="paises_responsavel"]').forEach(cb => {
+      cb.addEventListener('change', updateSuporteCounter);
+    });
+
+    cancel.addEventListener('click', closeModal);
+
+    backdrop.addEventListener('click', function(e){
+      if (e.target === backdrop) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && backdrop.style.display === 'flex') {
+        closeModal();
+      }
+    });
+
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn ? btn.textContent : 'Salvar';
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
+      }
+
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.ok) {
+          showToast(data.message || 'Usuário atualizado com sucesso.', 'success');
+          closeModal();
+          window.location.reload();
+        } else {
+          showToast(data.message || 'Erro ao atualizar usuário.', 'error');
+        }
+      } catch (err) {
+        showToast('Erro inesperado ao atualizar usuário.', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
+    });
+  })();
+
+  // 🧩 modal acessos
+  (function(){
+    const backdrop = document.getElementById('systems-backdrop');
+    const form = document.getElementById('systems-form');
+    const label = document.getElementById('systems-user-label');
+    const cancel = document.getElementById('systems-cancel');
+    const clearBtn = document.getElementById('systems-clear');
+
+    if (!backdrop || !form || !label) return;
+
+    function openSystemsModal(userId, username, name, selectedRaw){
+      label.textContent = `${name} (${username})`;
+      form.action = "{% url 'painel_user_update_systems' 0 %}".replace('/0/', `/${userId}/`);
+
+      const selected = (selectedRaw || '')
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      form.querySelectorAll('input[name="systems[]"]').forEach(cb => {
+        cb.checked = selected.includes(cb.value);
+      });
+
+      backdrop.style.display = 'flex';
+    }
+
+    function closeSystemsModal(){
+      backdrop.style.display = 'none';
+      form.reset();
+    }
+
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('[data-action="open-systems"]');
+      if (!btn) return;
+
+      openSystemsModal(
+        btn.dataset.userId,
+        btn.dataset.username,
+        btn.dataset.name,
+        btn.dataset.selected
+      );
+    });
+
+    if (cancel) {
+      cancel.addEventListener('click', closeSystemsModal);
+    }
+
+    if (clearBtn) {
+      clearBtn.addEventListener('click', function(){
+        form.querySelectorAll('input[name="systems[]"]').forEach(cb => {
+          cb.checked = false;
+        });
+      });
+    }
+
+    backdrop.addEventListener('click', function(e){
+      if (e.target === backdrop) closeSystemsModal();
+    });
+
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && backdrop.style.display === 'flex') {
+        closeSystemsModal();
+      }
+    });
+
+    form.addEventListener('submit', async function(e){
+      e.preventDefault();
+
+      const btn = form.querySelector('button[type="submit"]');
+      const originalText = btn ? btn.textContent : 'Salvar';
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Salvando...';
+      }
+
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.ok) {
+          showToast(data.message || 'Acessos atualizados com sucesso.', 'success');
+          closeSystemsModal();
+        } else {
+          showToast(data.message || 'Erro ao salvar acessos.', 'error');
+        }
+      } catch (err) {
+        showToast('Erro inesperado ao salvar acessos.', 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      }
+    });
+  })();
+</script>
+
+<!-- Modal Dashboard do Usuário -->
+<div class="modal-backdrop" id="dashboard-backdrop" aria-hidden="true" style="display:none; z-index: 1050;">
+  <div class="modal" role="dialog" aria-modal="true" style="max-width: 900px; width: 95%; height: auto; max-height: 90vh; overflow: auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h3 style="margin: 0;">Dashboard do Usuário: <span id="dash-user-name">—</span></h3>
+      <button type="button" class="btn" id="dash-close" style="padding: 5px 10px; font-size: 20px; border: none; background: none; cursor: pointer;">&times;</button>
+    </div>
+
+    <div id="dash-loading" style="text-align: center; padding: 40px;">
+      <div style="font-weight: bold; color: var(--muted);">Carregando dados...</div>
+    </div>
+
+    <div id="dash-content" style="display: none;">
+      <!-- Stats Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px;">
+        <div style="background: #f0f9ff; padding: 15px; border-radius: 12px; border: 1px solid #bae6fd; text-align: center;">
+          <div style="font-size: 0.7rem; font-weight: 800; color: #0369a1; text-transform: uppercase;">Consultas</div>
+          <div style="font-size: 1.5rem; font-weight: 800; color: #0c4a6e;" id="stat-consultas">0</div>
+        </div>
+        <div style="background: #f0fdf4; padding: 15px; border-radius: 12px; border: 1px solid #dcfce7; text-align: center;">
+          <div style="font-size: 0.7rem; font-weight: 800; color: #166534; text-transform: uppercase;">Ocorrências</div>
+          <div style="font-size: 1.5rem; font-weight: 800; color: #166534;" id="stat-ocorrencias">0</div>
+        </div>
+        <div style="background: #fffbeb; padding: 15px; border-radius: 12px; border: 1px solid #fef3c7; text-align: center;">
+          <div style="font-size: 0.7rem; font-weight: 800; color: #92400e; text-transform: uppercase;">Orçamentos</div>
+          <div style="font-size: 1.5rem; font-weight: 800; color: #92400e;" id="stat-orcamentos">0</div>
+        </div>
+        <div style="background: #eef2ff; padding: 15px; border-radius: 12px; border: 1px solid #e0e7ff; text-align: center;">
+          <div style="font-size: 0.7rem; font-weight: 800; color: #4338ca; text-transform: uppercase;">Vendas</div>
+          <div style="font-size: 1.5rem; font-weight: 800; color: #4338ca;" id="stat-vendas">0</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+        <!-- Recent Tables -->
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header" style="padding: 10px 15px; background: #f8fafc;"><h4 style="margin:0; font-size: 0.85rem;">Consultas Recentes</h4></div>
+          <div style="padding: 0; overflow: auto; max-height: 200px;">
+            <table class="table" style="font-size: 0.8rem; margin: 0; width: 100%;">
+              <thead><tr><th style="padding: 8px;">Serial</th><th style="padding: 8px;">Data</th></tr></thead>
+              <tbody id="list-consultas"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header" style="padding: 10px 15px; background: #f8fafc;"><h4 style="margin:0; font-size: 0.85rem;">Ocorrências Recentes</h4></div>
+          <div style="padding: 0; overflow: auto; max-height: 200px;">
+            <table class="table" style="font-size: 0.8rem; margin: 0; width: 100%;">
+              <thead><tr><th style="padding: 8px;">ID</th><th style="padding: 8px;">Status</th><th style="padding: 8px;">Data</th></tr></thead>
+              <tbody id="list-ocorrencias"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header" style="padding: 10px 15px; background: #f8fafc;"><h4 style="margin:0; font-size: 0.85rem;">Orçamentos Recentes</h4></div>
+          <div style="padding: 0; overflow: auto; max-height: 200px;">
+            <table class="table" style="font-size: 0.8rem; margin: 0; width: 100%;">
+              <thead><tr><th style="padding: 8px;">ID</th><th style="padding: 8px;">Cliente</th><th style="padding: 8px;">Total</th></tr></thead>
+              <tbody id="list-orcamentos"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header" style="padding: 10px 15px; background: #f8fafc;"><h4 style="margin:0; font-size: 0.85rem;">Vendas Recentes</h4></div>
+          <div style="padding: 0; overflow: auto; max-height: 200px;">
+            <table class="table" style="font-size: 0.8rem; margin: 0; width: 100%;">
+              <thead><tr><th style="padding: 8px;">ID</th><th style="padding: 8px;">Status</th><th style="padding: 8px;">Total</th></tr></thead>
+              <tbody id="list-vendas"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 📊 Dashboard do Usuário (AJAX)
+  (function(){
+    const backdrop = document.getElementById('dashboard-backdrop');
+    const content = document.getElementById('dash-content');
+    const loading = document.getElementById('dash-loading');
+    const userName = document.getElementById('dash-user-name');
+    const closeBtn = document.getElementById('dash-close');
+
+    if (!backdrop || !content || !loading || !userName || !closeBtn) return;
+
+    function openDashboard(userId, name) {
+      userName.textContent = name;
+      backdrop.style.display = 'flex';
+      content.style.display = 'none';
+      loading.style.display = 'block';
+
+      fetch("{% url 'painel_user_dashboard_stats' 0 %}".replace('/0/', `/${userId}/`))
+        .then(res => res.json())
+        .then(data => {
+          if (!data.ok) throw new Error(data.message || 'Erro ao carregar');
+
+          document.getElementById('stat-consultas').textContent = data.stats.consultas_total;
+          document.getElementById('stat-ocorrencias').textContent = data.stats.ocorrencias_total;
+          document.getElementById('stat-orcamentos').textContent = data.stats.orcamentos_total;
+          document.getElementById('stat-vendas').textContent = data.stats.vendas_total;
+
+          renderTable('list-consultas', data.recent.consultas, item => `<td>${item.serial}</td><td>${item.data}</td>`);
+          renderTable('list-ocorrencias', data.recent.ocorrencias, item => `<td>#${item.id}</td><td>${item.status}</td><td>${item.data}</td>`);
+          renderTable('list-orcamentos', data.recent.orcamentos, item => `<td>#${item.id}</td><td>${item.cliente || '-'}</td><td>R$ ${item.total.toFixed(2)}</td>`);
+          renderTable('list-vendas', data.recent.vendas, item => `<td>#${item.id}</td><td>${item.status}</td><td>R$ ${item.total.toFixed(2)}</td>`);
+
+          loading.style.display = 'none';
+          content.style.display = 'block';
+        })
+        .catch(err => {
+          alert('Erro ao carregar dashboard: ' + err.message);
+          backdrop.style.display = 'none';
+        });
+    }
+
+    function renderTable(id, items, rowFn) {
+      const tbody = document.getElementById(id);
+      if (!items || items.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 20px; color:var(--muted);">Nenhum registro recente.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = items.map(item => `<tr>${rowFn(item)}</tr>`).join('');
+    }
+
+    document.addEventListener('click', function(e){
+      const btn = e.target.closest('[data-action="open-dashboard"]');
+      if (btn) openDashboard(btn.dataset.userId, btn.dataset.name);
+    });
+
+    closeBtn.onclick = () => backdrop.style.display = 'none';
+    backdrop.onclick = (e) => { if(e.target === backdrop) backdrop.style.display = 'none'; };
+  })();
+</script>
+{% endblock %}

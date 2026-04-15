@@ -1,0 +1,31 @@
+<!-- templates/base.html -->
+{% load static %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Meu Sistema{% endblock %}</title>
+</head>
+<body>
+    <header style="position: relative;">
+        <!-- Toggle de idioma no canto superior direito -->
+        <div style="position: absolute; top: 10px; right: 10px;">
+            <form action="{% url 'set_language' %}" method="post">
+                {% csrf_token %}
+                <input name="next" type="hidden" value="{{ request.path }}">
+                <button type="submit" name="language" value="pt-br" style="border:none; background:none; cursor:pointer;">
+                    <img src="{% static 'images/flags/br.png' %}" alt="PT" width="24">
+                </button>
+                <button type="submit" name="language" value="es" style="border:none; background:none; cursor:pointer;">
+                    <img src="{% static 'images/flags/es.png' %}" alt="ES" width="24">
+                </button>
+            </form>
+        </div>
+        {% block header %}{% endblock %}
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

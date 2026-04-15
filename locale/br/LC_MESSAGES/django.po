@@ -1,0 +1,720 @@
+# Tradução completa do arquivo de suporte
+# Copyright (C) 2025 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-10-30 11:44-0300\n"
+"PO-Revision-Date: 2025-10-27 19:30-0300\n"
+"Last-Translator: Seu Nome <email@dominio.com>\n"
+"Language-Team: Portuguese\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\Form_Suporte\settings.py:197
+msgid "Portuguese"
+msgstr "Português"
+
+#: .\Form_Suporte\settings.py:198
+msgid "Spanish"
+msgstr "Espanhol"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:8
+msgid "Document"
+msgstr "Documento"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:14
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:25
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2373
+#: .\ocorrencia_erro\views.py:223
+msgid "Concluído"
+msgstr "Concluído"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:31
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2383
+#: .\ocorrencia_erro\views.py:225
+msgid "Em progresso"
+msgstr "Em progresso"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:44
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2381
+#: .\ocorrencia_erro\views.py:224
+msgid "Atrasado"
+msgstr "Atrasado"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:49
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2377
+#: .\ocorrencia_erro\views.py:226
+msgid "Requisitado"
+msgstr "Requisitado"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:399
+msgid "Notificações"
+msgstr "Notificações"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:403
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3109
+msgid "Nenhuma notificação"
+msgstr "Nenhuma notificação"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:413
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:396
+msgid "Serial"
+msgstr "Serial"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:414
+#, fuzzy
+#| msgid "Data:"
+msgid "Data"
+msgstr "Data:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:415
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:304
+msgid "Técnico"
+msgstr "Técnico"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:416
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:285
+msgid "País"
+msgstr "País"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:417
+#, fuzzy
+#| msgid "Dispositivo:"
+msgid "Dispositivo"
+msgstr "Dispositivo:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:418
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:340
+msgid "Área"
+msgstr "Área"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:419
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:407
+msgid "Marca"
+msgstr "Marca"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:420
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:417
+msgid "Modelo"
+msgstr "Modelo"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:421
+#, fuzzy
+#| msgid "Ver Detalhes"
+msgid "Detalhes"
+msgstr "Ver Detalhes"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:422
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:449
+msgid "Status"
+msgstr "Status"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:423
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:443
+msgid "Deadline"
+msgstr "Prazo"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:425
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:319
+msgid "Responsável"
+msgstr "Responsável"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:427
+#, fuzzy
+#| msgid "Finalizado:"
+msgid "Finalizado"
+msgstr "Finalizado:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:448
+msgid "Nova Ocorrência"
+msgstr "Nova Ocorrência"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:461
+msgid "Criar novo responsável"
+msgstr "Criar novo responsável"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:466
+msgid "Primeira"
+msgstr "Primeira"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:467
+msgid "Voltar"
+msgstr "Voltar"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:471
+msgid "Avançar"
+msgstr "Avançar"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:472
+msgid "Última"
+msgstr "Última"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:480
+msgid "Selecionar responsável:"
+msgstr "Selecionar responsável:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:483
+msgid "Escolha"
+msgstr "Escolha"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:487
+msgid "Total de ocorrências:"
+msgstr "Total de ocorrências:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:549
+msgid "Deseja realmente deletar o arquivo"
+msgstr "Deseja realmente deletar o arquivo"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:573
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1097
+msgid "Erro ao buscar o registro atualizado:"
+msgstr "Erro ao buscar o registro atualizado:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:574
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1098
+msgid "Erro ao atualizar os dados da ocorrência."
+msgstr "Erro ao atualizar os dados da ocorrência."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:580
+msgid "Erro ao deletar o arquivo:"
+msgstr "Erro ao deletar o arquivo:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:584
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1105
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3057
+msgid "Erro:"
+msgstr "Erro:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:585
+msgid "Erro ao deletar o arquivo."
+msgstr "Erro ao deletar o arquivo."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:617
+msgid "Erro ao fazer download:"
+msgstr "Erro ao fazer download:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:618
+msgid "Erro ao fazer download do arquivo. Tente novamente."
+msgstr "Erro ao fazer download do arquivo. Tente novamente."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:702
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:911
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2349
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2376
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2603
+msgid "Não definido"
+msgstr "Não definido"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:702
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:717
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2349
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2372
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2601
+msgid "Não finalizado"
+msgstr "Não finalizado"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:758
+msgid "Erro ao marcar notificações como lidas:"
+msgstr "Erro ao marcar notificações como lidas:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:766
+msgid "Arquivo"
+msgstr "Arquivo"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:771
+msgid "Deletar"
+msgstr "Deletar"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:775
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3280
+msgid "Download"
+msgstr "Baixar"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:781
+msgid "Nenhum arquivo anexado."
+msgstr "Nenhum arquivo anexado."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:795
+msgid "Detalhes da Ocorrência"
+msgstr "Detalhes da Ocorrência"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:798
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1031
+msgid "Problema Detectado:"
+msgstr "Problema Detectado:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:805
+msgid "Gerar PDF"
+msgstr "Gerar PDF"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:809
+msgid "COPIAR INFORMAÇÕES"
+msgstr "Copiar Informações"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:817
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:823
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:827
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:832
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:837
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:841
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:845
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:850
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:857
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:862
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:866
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:870
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:874
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:878
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:890
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:894
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1023
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1024
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1025
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1026
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1027
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1028
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1029
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1030
+msgid "Não informado"
+msgstr "Não informado"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:822
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1023
+msgid "Técnico:"
+msgstr "Técnico:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:826
+msgid "País:"
+msgstr "País:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:831
+msgid "Telefone de contato:"
+msgstr "Telefone de contato:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:836
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1024
+msgid "Dispositivo:"
+msgstr "Dispositivo:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:840
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1025
+msgid "Área:"
+msgstr "Área:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:844
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1026
+msgid "Serial:"
+msgstr "Serial:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:849
+msgid "Tipo ECU:"
+msgstr "Tipo ECU:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:856
+msgid "Tipo Motor:"
+msgstr "Tipo Motor:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:861
+msgid "VIN:"
+msgstr "VIN:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:865
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1027
+msgid "Marca:"
+msgstr "Marca:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:869
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1028
+msgid "Modelo:"
+msgstr "Modelo:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:873
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1029
+msgid "Ano:"
+msgstr "Ano:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:877
+msgid "Versão:"
+msgstr "Versão:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:881
+msgid "Status:"
+msgstr "Status:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:884
+msgid "Aguardando Responsável"
+msgstr "Aguardando Responsável"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:885
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:452
+#: .\ocorrencia_erro\views.py:227
+msgid "Aguardando China"
+msgstr "Aguardando China"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:889
+msgid "Responsável:"
+msgstr "Responsável:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:893
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1030
+msgid "Data:"
+msgstr "Data:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:898
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:909
+msgid "Prazo:"
+msgstr "Prazo:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:904
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:922
+msgid "dd/mm/aaaa"
+msgstr "dd/mm/aaaa"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:916
+msgid "Finalizado:"
+msgstr "Finalizado:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:925
+msgid "Adicionar novo arquivo:"
+msgstr "Adicionar novo arquivo:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:939
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:466
+msgid "Selecionar Arquivos"
+msgstr "Selecionar Arquivos"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:941
+msgid "Cadastrar"
+msgstr "Cadastrar"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:943
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:469
+msgid "Limpar Tudo"
+msgstr "Limpar Tudo"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:949
+msgid "Chat de feedback"
+msgstr "Chat de feedback"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:955
+msgid "Digite sua mensagem..."
+msgstr "Digite sua mensagem..."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:958
+msgid "Enviar imagem"
+msgstr "Enviar imagem"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:963
+msgid "Enviar"
+msgstr "Enviar"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:969
+msgid "Arquivos anexados:"
+msgstr "Arquivos anexados:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:972
+msgid "Baixar Todos"
+msgstr "Baixar Todos"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:985
+msgid "Informações Detalhadas"
+msgstr "Informações Detalhadas"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:991
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:485
+msgid "Fechar"
+msgstr "Fechar"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1037
+msgid "Informações copiadas com sucesso!"
+msgstr "Informações copiadas com sucesso!"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1038
+msgid "Erro ao copiar informações!"
+msgstr "Erro ao copiar informações!"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1083
+msgid "Erro de rede ou do servidor"
+msgstr "Erro de rede ou do servidor"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1108
+msgid "Erro inesperado:"
+msgstr "Erro inesperado:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1228
+msgid "O socket do chat foi fechado inesperadamente"
+msgstr "O socket do chat foi fechado inesperadamente"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1299
+msgid "Baixado!"
+msgstr "Baixado!"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1338
+msgid "Por favor, selecione apenas arquivos de imagem."
+msgstr "Por favor, selecione apenas arquivos de imagem."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1344
+msgid "A imagem deve ter no máximo 2MB."
+msgstr "A imagem deve ter no máximo 2MB."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1389
+msgid "Imagem colada! Digite uma mensagem (opcional)..."
+msgstr "Imagem colada! Digite uma mensagem (opcional)..."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1398
+msgid "Clipboard API não suportada, tentando método alternativo..."
+msgstr "Clipboard API não suportada, tentando método alternativo..."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1430
+msgid "Imagem colada com sucesso!"
+msgstr "Imagem colada com sucesso!"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1493
+msgid "Mensagem enviada:"
+msgstr "Mensagem enviada:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1493
+msgid "com texto"
+msgstr "com texto"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:1493
+msgid "apenas imagem"
+msgstr "apenas imagem"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2082
+msgid "Erro ao processar opções de filtro não-data:"
+msgstr "Erro ao processar opções de filtro não-data:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2096
+msgid "Nenhuma data disponível."
+msgstr "Nenhuma data disponível."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2105
+msgid "(Vazio)"
+msgstr "(Vazio)"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2109
+msgid "Nenhuma opção disponível."
+msgstr "Nenhuma opção disponível."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2116
+msgid "Selecionar Todos"
+msgstr "Selecionar Todos"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2118
+msgid "Buscar..."
+msgstr "Buscar..."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2121
+msgid "Aplicar"
+msgstr "Aplicar"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2122
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2759
+msgid "Limpar"
+msgstr "Limpar"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2323
+msgid "Erro ao filtrar:"
+msgstr "Erro ao filtrar:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2324
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3262
+msgid "Erro"
+msgstr "Erro"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2324
+msgid "Ocorreu um erro ao aplicar os filtros."
+msgstr "Ocorreu um erro ao aplicar os filtros."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2421
+msgid "Erro ao persistir status China:"
+msgstr "Erro ao persistir status China:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2427
+msgid "Erro de rede ao persistir status China:"
+msgstr "Erro de rede ao persistir status China:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2563
+msgid "Nenhum registro encontrado."
+msgstr "Nenhum registro encontrado."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2615
+msgid "Ver Detalhes"
+msgstr "Ver Detalhes"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2682
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2873
+msgid "Texto copiado"
+msgstr "Texto copiado"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2683
+msgid "Data copiada para área de transferência"
+msgstr "Data copiada para área de transferência"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2764
+msgid "Hoje"
+msgstr "Hoje"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2838
+msgid "Selecione o responsável"
+msgstr "Selecione o responsável"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:2874
+msgid "Feedback copiado para área de transferência"
+msgstr "Feedback copiado para área de transferência"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3036
+msgid "Erro na requisição"
+msgstr "Erro na requisição"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3101
+msgid "Erro ao carregar notificações:"
+msgstr "Erro ao carregar notificações:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3123
+msgid "Marcar como lida"
+msgstr "Marcar como lida"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3124
+msgid "Marcar notificação como lida"
+msgstr "Marcar notificação como lida"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3127
+msgid "Marcar lida"
+msgstr "Marcar lida"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3165
+msgid "Erro ao buscar ocorrência:"
+msgstr "Erro ao buscar ocorrência:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3166
+msgid "Erro ao carregar detalhes da ocorrência."
+msgstr "Erro ao carregar detalhes da ocorrência."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3190
+msgid "Erro ao contar notificações:"
+msgstr "Erro ao contar notificações:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3262
+msgid "Erro desconhecido ao atualizar status."
+msgstr "Erro desconhecido ao atualizar status."
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3266
+msgid "Erro ao salvar status no pop-up:"
+msgstr "Erro ao salvar status no pop-up:"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3267
+msgid "Erro de Rede"
+msgstr "Erro de Rede"
+
+#: .\ocorrencia_erro\templates\ocorrencia\index.html:3267
+msgid "Não foi possível conectar ao servidor para atualizar o status."
+msgstr "Não foi possível conectar ao servidor para atualizar o status."
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:270
+msgid "Criar novo usuário"
+msgstr "Criar novo responsável"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:273
+msgid "Logout"
+msgstr "Sair"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:274
+msgid "Voltar para tabela"
+msgstr "Voltar para a tabela"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:276
+msgid "Login"
+msgstr "Entrar"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:288
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:294
+msgid "-- Selecione o país --"
+msgstr "-- Selecione o país --"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:298
+msgid "Sem país atribuído"
+msgstr "Sem país atribuído"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:313
+msgid "Ticket"
+msgstr "Ticket"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:321
+msgid "-- Selecione o responsável --"
+msgstr "-- Selecione o responsável --"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:330
+msgid "Equipamentos"
+msgstr "Equipamentos"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:332
+msgid "-- Selecione o equipamento --"
+msgstr "-- Selecione o equipamento --"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:342
+msgid "IMMO"
+msgstr "IMMO"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:343
+msgid "Diagnosis"
+msgstr "Diagnóstico"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:344
+msgid "Device"
+msgstr "Dispositivo"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:402
+msgid "VIN"
+msgstr "VIN"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:412
+msgid "Telefone de contato"
+msgstr "Telefone de contato"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:422
+msgid "Ano"
+msgstr "Ano"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:427
+msgid "Tipo de ECU"
+msgstr "Tipo de ECU"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:432
+msgid "Tipo de Motor"
+msgstr "Tipo de Motor"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:437
+msgid "Versão"
+msgstr "Versão"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:451
+msgid "Status padrão"
+msgstr "Status padrão"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:457
+msgid "Problema Detectado"
+msgstr "Problema Detectado"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:462
+msgid "Anexar Arquivo(s)"
+msgstr "Anexar Arquivo(s)"
+
+#: .\ocorrencia_erro\templates\ocorrencia\subir_ocorrencia.html:475
+msgid "Cadastrar Ocorrência"
+msgstr "Cadastrar Ocorrência"
+
+#: .\ocorrencia_erro\views.py:228
+msgid "China Atrasada"
+msgstr "China Atrasada"
+
+#~ msgid "ID:"
+#~ msgstr "ID:"

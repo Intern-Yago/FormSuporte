@@ -1,0 +1,22 @@
+# Ignorar arquivos e diretórios comuns do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.venv
+venv/
+env/
+
+# Ignorar arquivos e diretórios do Django
+db.sqlite3
+db2.sqlite3
+
+/media
+
+# Ignorar arquivos de controle de versão e temporários
+.git
+.gitignore
+.DS_Store
+*.log
+*.tmp

@@ -1,0 +1,1626 @@
+{% load i18n static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Formulário de Ocorrência</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="{% static 'ocorrencia/options.js' %}"></script>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-dark: #155ab6;
+      --primary-light: #3a8ee6;
+      --secondary: #5f6368;
+      --background: #f9fafb;
+      --text-primary: #202124;
+      --text-secondary: #5f6368;
+      --border-color: #dfe1e5;
+      --shadow-light: rgba(60, 64, 67, 0.15);
+      --shadow-hover: rgba(26, 115, 232, 0.3);
+      --error: #d93025;
+      --error-dark: #a52714;
+    }
+
+    /* Reset básico */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text-primary);
+    }
+
+    body {
+      background-color: var(--background);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+      flex-direction: column;
+    }
+
+    #actions_log {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      gap: 16px;
+      z-index: 1000;
+      justify-content: space-between;
+      width: calc(100% - 40px);
+    }
+
+    .buttons_log {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 28px;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px var(--shadow-light);
+      transition: background-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      letter-spacing: 0.03em;
+    }
+
+    .buttons_log:hover {
+      background-color: var(--primary-dark);
+      box-shadow: 0 4px 14px var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .buttons_log:focus-visible {
+      outline: 2px solid var(--primary-light);
+      outline-offset: 2px;
+    }
+
+    .new_user {
+      background-color: #2e7d32;
+      box-shadow: 0 2px 6px rgba(46, 125, 50, 0.2);
+    }
+
+    .new_user:hover {
+      background-color: #27632a;
+      box-shadow: 0 4px 14px rgba(46, 125, 50, 0.4);
+    }
+
+    .logout {
+      background-color: #b00020;
+      box-shadow: 0 2px 6px rgba(176, 0, 32, 0.2);
+    }
+
+    .logout:hover {
+      background-color: #7a0015;
+      box-shadow: 0 4px 14px rgba(176, 0, 32, 0.4);
+    }
+
+    .redirecionar {
+      background-color: #525252ff;
+      box-shadow: 0 2px 6px rgba(176, 0, 32, 0.2);
+    }
+
+    .redirecionar:hover {
+      background-color: #3f3f3fff;
+      box-shadow: 0 2px 6px rgba(176, 0, 32, 0.2);
+    }
+
+    .login {
+      background-color: var(--primary);
+      box-shadow: 0 2px 6px var(--shadow-light);
+    }
+
+    .login:hover {
+      background-color: var(--primary-dark);
+      box-shadow: 0 4px 14px var(--shadow-hover);
+    }
+
+    /* FORMULÁRIO */
+    form#form-ocorrencia {
+      background-color: white;
+      padding: 2.5rem 3rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(32, 33, 36, 0.08);
+      max-width: 900px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem 2rem;
+      align-items: start;
+    }
+
+    .form-pair,
+    .file-upload-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 100%;
+    }
+
+    .full-width {
+      grid-column: 1 / -1;
+    }
+
+    form input[type="text"],
+    form select,
+    form textarea {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 1rem;
+      background-color: white;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      width: 100%;
+    }
+
+    form input[type="text"]:focus,
+    form select:focus,
+    form textarea:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 4px var(--primary-light);
+    }
+
+    form input[readonly] {
+      background-color: #f3f4f6;
+      color: var(--text-secondary);
+    }
+
+    form textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    form button[type="submit"] {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 0;
+      font-weight: 700;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 3px 10px var(--shadow-light);
+      transition: background-color 0.25s ease, box-shadow 0.25s ease;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    form button[type="submit"]:hover {
+      background-color: var(--primary-dark);
+      box-shadow: 0 5px 18px var(--shadow-hover);
+    }
+
+    .area {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-top: 0.5rem;
+    }
+
+    .area span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    input[type="radio"] {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      background-color: #fff;
+      transition: background-color 0.2s ease;
+    }
+
+    input[type="radio"]:checked {
+      background-color: #009EE0;
+      border: 2px solid #009EE0;
+    }
+
+    input[type="radio"]:hover {
+      cursor: pointer;
+      border: 2px solid #15446D;
+    }
+
+    .serial-hint {
+      display: none;
+      color: var(--primary);
+      font-size: 0.8rem;
+      margin-top: 4px;
+    }
+
+    /* UPLOAD DE ARQUIVOS */
+    .file-upload {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .custom-file-button {
+      background-color: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 6px var(--shadow-light);
+      transition: background-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .custom-file-button:hover {
+      background-color: var(--primary-dark);
+      box-shadow: 0 4px 14px var(--shadow-hover);
+    }
+
+    .file-upload input[type="file"] {
+      display: none;
+    }
+
+    /* --- NOVOS ESTILOS PARA UPLOAD --- */
+    .file-upload-wrapper.drag-over {
+      background-color: #e9f0fd;
+      border: 2px dashed var(--primary-light);
+      padding: 1rem;
+      border-radius: 8px;
+    }
+
+    .file-preview-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .file-preview-card {
+      background-color: #f1f3f4;
+      border-radius: 6px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .file-preview-card .file-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 200px;
+    }
+
+    .file-preview-card .remove-file-btn {
+      background: none;
+      border: none;
+      color: var(--error);
+      font-weight: bold;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0 5px;
+      line-height: 1;
+      transition: transform 0.2s ease;
+    }
+
+    .file-preview-card .remove-file-btn:hover {
+      transform: scale(1.2);
+    }
+
+    .clear-all-files-btn {
+      display: block;
+      padding: 6px 12px;
+      background-color: var(--error);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: background-color 0.2s ease;
+    }
+
+    .clear-all-files-btn:hover {
+      background-color: var(--error-dark);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* RESPONSIVO */
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+
+      form {
+        grid-template-columns: 1fr;
+        padding: 1.5rem;
+      }
+
+      .area {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .custom-file-button {
+        width: 100%;
+        text-align: center;
+      }
+
+      .file-upload {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #actions_log {
+        position: static;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .buttons_log {
+        padding: 10px 20px;
+        font-size: 14px;
+        border-radius: 6px;
+      }
+    }
+
+    .spinner {
+      border: 2px solid #f3f3f3;
+      /* cor clara */
+      border-top: 2px solid #3498db;
+      /* cor do "spin" */
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .spinner.visible {
+      opacity: 1;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    #error-popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      display: none;
+      /* Inicia oculto */
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #error-popup-content {
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      animation: fadeIn 0.3s ease;
+      border-top: 4px solid transparent;
+      /* Adicionado para o efeito de cor */
+    }
+
+    #popup-title {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    #popup-message {
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    .autocomplete-wrapper {
+      position: relative;
+    }
+
+    .autocomplete-suggestions {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      z-index: 2000;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+
+    .autocomplete-suggestion {
+      padding: 12px 14px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      border-bottom: 1px solid #f1f3f4;
+    }
+
+    .autocomplete-suggestion:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-suggestion:hover,
+    .autocomplete-suggestion.active {
+      background-color: #eef4ff;
+    }
+
+    .autocomplete-empty {
+      padding: 12px 14px;
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="actions_log">
+    <span>
+      {% include 'ocorrencia/components/toogleCountry.html' with request=request %}
+    </span>
+    <span>
+
+      {% if has_full_permission %}
+      <button class="new_user buttons_log" onclick="newUser()">{% trans "Criar novo usuário" %}</button>
+      {% endif %}
+      {% if user.is_authenticated %}
+      <button class="logout buttons_log" onclick="logOut()">{% trans "Logout" %}</button>
+      <button class="redirecionar buttons_log" onclick="redirecionar()">{% trans "Voltar para tabela" %}</button>
+      {% else %}
+      <button class="login buttons_log" onclick="handleLogin()">{% trans "Login" %}</button>
+      {% endif %}
+    </span>
+  </div>
+
+  <form method="POST" enctype="multipart/form-data" id="form-ocorrencia">
+    {% csrf_token %}
+
+    <div class="form-pair">
+      <label for="country">{% trans "País" %}</label>
+      {% if has_full_permission %}
+      <select id="country" name="country" required>
+        <option value="">{% trans "-- Selecione o país --" %}</option>
+        {% for pais in paises %}<option value="{{ pais.id }}">{{ pais.name }}</option>{% endfor %}
+      </select>
+      {% else %}
+      {% if paises %}
+      <select id="country" name="country">
+        <option value="">{% trans "-- Selecione o país --" %}</option>
+        {% for pais in paises %}<option value="{{ pais.id }}">{{ pais.name }}</option>{% endfor %}
+      </select>
+      {% else %}
+      <input type="text" id="country" name="country" value="{% trans 'Sem país atribuído' %}" readonly />
+      {% endif %}
+      {% endif %}
+    </div>
+
+    <div class="form-pair">
+      <label for="technical">{% trans "Técnico" %}</label>
+      {% if username and not has_full_permission %}
+      <input type="text" id="technical" name="technical" required value="{{ username|default:'' }}">
+      {% else %}
+      <input type="text" id="technical" name="technical" required />
+      {% endif %}
+    </div>
+
+    <div class="form-pair full-width" id="span_ticket">
+      <label for="ticket">{% trans "Ticket" %}</label>
+      <input type="text" id="ticket" name="ticket" />
+    </div>
+
+    {% if has_full_permission %}
+    <div class="form-pair">
+      <label for="responsible">{% trans "Responsável" %}</label>
+      <select id="responsible" name="responsible">
+        <option value="">{% trans "-- Selecione o responsável --" %}</option>
+        {% for responsavel in todos_responsaveis_raw %}
+        <option value="{{ responsavel.name }}">{{ responsavel.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+
+    <div class="form-pair">
+      <label for="device">{% trans "Equipamentos" %}</label>
+      <select id="device" name="device" required>
+        <option value="">{% trans "-- Selecione o equipamento --" %}</option>
+        {% for equipamento in todos_equipamentos_raw %}
+        <option value="{{ equipamento.id }}">{{ equipamento.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="form-pair full-width">
+      <label for="area">{% trans "Área" %}</label>
+      <span class="area">
+        <span><input type="radio" name="area_radio" id="IMMO" value="IMMO" required><label for="IMMO">{% trans "IMMO" %}</label></span>
+        <span><input type="radio" name="area_radio" id="Diagnosis" value="Diagnosis"><label for="Diagnosis">{% trans "Diagnosis" %}</label></span>
+        <span><input type="radio" name="area_radio" id="Device" value="Device"><label for="Device">{% trans "Device" %}</label></span>
+        <span><input type="radio" name="area_radio" id="BOX360" value="BOX360"><label for="BOX360">{% trans "BOX360" %}</label></span>
+      </span>
+    </div>
+
+    <script>
+      // Lógica de exibição condicional para Tipo de ECU e Tipo de Motor
+      document.addEventListener('DOMContentLoaded', function () {
+
+        const areaRadios = document.querySelectorAll('input[name="area_radio"]');
+        const ecuField = document.getElementById('ecu-field');
+        const motorField = document.getElementById('motor-field');
+        const chaveField = document.getElementById('chave-field');
+        const sistemaField = document.getElementById('sistema-field');
+        const sistemaSelect = document.getElementById('sistema');
+        const problemaField = document.getElementById('problema-field');
+        const problemaSelect = document.getElementById('tipo_problema');
+
+        const ALLOW_OUTRO_OPTIONS = {{ allow_outro_options|yesno:"true,false" }};
+        // ----------------------------------------------------------------------------------
+        // AUTOCOMPLETE FUZZY PARA MARCAS
+        // ----------------------------------------------------------------------------------
+        const CAR_BRANDS = [
+          'All',
+          'Abarth',
+          'Acura',
+          'Alfa Romeo',
+          'Aston Martin',
+          'Audi',
+          'Bentley',
+          'BMW',
+          'BYD',
+          'Cadillac',
+          'Chery',
+          'Chevrolet',
+          'Chrysler',
+          'Citroën',
+          'Dacia',
+          'Dodge',
+          'Ferrari',
+          'Fiat',
+          'Ford',
+          'Genesis',
+          'GMC',
+          'Great Wall Motors',
+          'Honda',
+          'Hyundai',
+          'Infiniti',
+          'Isuzu',
+          'Jaguar',
+          'Jeep',
+          'Kia',
+          'Lamborghini',
+          'Land Rover',
+          'Lexus',
+          'Maserati',
+          'Mazda',
+          'McLaren',
+          'Mercedes-Benz',
+          'Mini',
+          'Mitsubishi',
+          'Nissan',
+          'Peugeot',
+          'Porsche',
+          'RAM',
+          'Renault',
+          'Rolls-Royce',
+          'Saab',
+          'Seat',
+          'Skoda',
+          'Subaru',
+          'Suzuki',
+          'Tesla',
+          'Toyota',
+          'Volkswagen',
+          'Volvo'
+        ];
+
+        const brandInput = document.getElementById('brand');
+        const brandSuggestions = document.getElementById('brand-suggestions');
+
+        if (brandInput && brandSuggestions) {
+          let activeIndex = -1;
+          let currentResults = [];
+
+          function normalizeText(str) {
+            return (str || '')
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '') // remove acentos
+              .replace(/[^a-zA-Z0-9]/g, '')    // remove espaços, hífens, etc
+              .toLowerCase()
+              .trim();
+          }
+
+          function levenshtein(a, b) {
+            const matrix = Array.from({ length: b.length + 1 }, () => []);
+            for (let i = 0; i <= b.length; i++) matrix[i][0] = i;
+            for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+            for (let i = 1; i <= b.length; i++) {
+              for (let j = 1; j <= a.length; j++) {
+                if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                  matrix[i][j] = matrix[i - 1][j - 1];
+                } else {
+                  matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + 1,
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j] + 1
+                  );
+                }
+              }
+            }
+
+            return matrix[b.length][a.length];
+          }
+
+          function scoreBrand(query, brand) {
+            const q = normalizeText(query);
+            const b = normalizeText(brand);
+
+            if (!q) return -9999;
+            if (q === b) return 1000;
+            if (b.startsWith(q)) return 800 - (b.length - q.length);
+            if (b.includes(q)) return 650 - (b.indexOf(q) * 5);
+
+            // match por partes
+            const brandWords = brand
+              .normalize('NFD')
+              .replace(/[\u0300-\u036f]/g, '')
+              .toLowerCase()
+              .split(/[\s-]+/)
+              .filter(Boolean);
+
+            if (brandWords.some(word => word.startsWith(q))) return 600;
+            if (brandWords.some(word => word.includes(q))) return 520;
+
+            // tolerância a erro de digitação
+            const dist = levenshtein(q, b);
+            const maxLen = Math.max(q.length, b.length);
+            const similarity = 1 - dist / maxLen;
+
+            if (similarity >= 0.72) return Math.round(similarity * 450);
+
+            // tolerância em palavras compostas: ex "landrover", "land rover", "mercedez"
+            for (const word of brandWords) {
+              const d = levenshtein(q, normalizeText(word));
+              const localMax = Math.max(q.length, word.length);
+              const localSim = 1 - d / localMax;
+              if (localSim >= 0.75) return Math.round(localSim * 380);
+            }
+
+            return -9999;
+          }
+
+          function getFuzzyMatches(query) {
+            return CAR_BRANDS
+              .map(brand => ({ brand, score: scoreBrand(query, brand) }))
+              .filter(item => item.score > 0)
+              .sort((a, b) => b.score - a.score || a.brand.localeCompare(b.brand))
+              .slice(0, 8)
+              .map(item => item.brand);
+          }
+
+          function renderSuggestions(results) {
+            brandSuggestions.innerHTML = '';
+            activeIndex = -1;
+            currentResults = results;
+
+            if (!results.length) {
+              brandSuggestions.innerHTML = `<div class="autocomplete-empty">Nenhuma marca encontrada</div>`;
+              brandSuggestions.style.display = 'block';
+              return;
+            }
+
+            results.forEach((brand, index) => {
+              const item = document.createElement('div');
+              item.className = 'autocomplete-suggestion';
+              item.textContent = brand;
+              item.dataset.index = index;
+
+              item.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                selectSuggestion(index);
+              });
+
+              brandSuggestions.appendChild(item);
+            });
+
+            brandSuggestions.style.display = 'block';
+          }
+
+          function updateActiveSuggestion() {
+            const items = brandSuggestions.querySelectorAll('.autocomplete-suggestion');
+            items.forEach((item, idx) => {
+              item.classList.toggle('active', idx === activeIndex);
+            });
+          }
+
+          function selectSuggestion(index) {
+            if (index < 0 || index >= currentResults.length) return;
+            brandInput.value = currentResults[index];
+            brandSuggestions.style.display = 'none';
+            brandSuggestions.innerHTML = '';
+            activeIndex = -1;
+            currentResults = [];
+          }
+
+          function closeSuggestions() {
+            brandSuggestions.style.display = 'none';
+            brandSuggestions.innerHTML = '';
+            activeIndex = -1;
+            currentResults = [];
+          }
+
+          function validateAndNormalizeBrand() {
+            const typed = brandInput.value.trim();
+            if (!typed) return false;
+
+            const exact = CAR_BRANDS.find(b => normalizeText(b) === normalizeText(typed));
+            if (exact) {
+              brandInput.value = exact;
+              return true;
+            }
+
+            const matches = getFuzzyMatches(typed);
+
+            // se houver uma sugestão muito forte, já completa automaticamente
+            if (matches.length === 1) {
+              brandInput.value = matches[0];
+              closeSuggestions();
+              return true;
+            }
+
+            // se o primeiro resultado for claramente o certo, também completa
+            if (matches.length > 0) {
+              const first = matches[0];
+              const q = normalizeText(typed);
+              const f = normalizeText(first);
+
+              if (f.startsWith(q) || f.includes(q)) {
+                brandInput.value = first;
+                closeSuggestions();
+                return true;
+              }
+            }
+
+            renderSuggestions(matches);
+            return false;
+          }
+
+          brandInput.addEventListener('input', function () {
+            const query = brandInput.value.trim();
+            if (!query) {
+              closeSuggestions();
+              return;
+            }
+
+            const matches = getFuzzyMatches(query);
+            renderSuggestions(matches);
+          });
+
+          brandInput.addEventListener('focus', function () {
+            const query = brandInput.value.trim();
+            if (!query) return;
+            renderSuggestions(getFuzzyMatches(query));
+          });
+
+          brandInput.addEventListener('keydown', function (e) {
+            const items = brandSuggestions.querySelectorAll('.autocomplete-suggestion');
+
+            if (brandSuggestions.style.display === 'none' || !items.length) return;
+
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              activeIndex = Math.min(activeIndex + 1, items.length - 1);
+              updateActiveSuggestion();
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              activeIndex = Math.max(activeIndex - 1, 0);
+              updateActiveSuggestion();
+            } else if (e.key === 'Enter') {
+              if (activeIndex >= 0) {
+                e.preventDefault();
+                selectSuggestion(activeIndex);
+              }
+            } else if (e.key === 'Escape') {
+              closeSuggestions();
+            }
+          });
+
+          document.addEventListener('click', function (e) {
+            if (!document.getElementById('brand-autocomplete-wrapper').contains(e.target)) {
+              closeSuggestions();
+            }
+          });
+
+          formOcorrencia.addEventListener('submit', function (e) {
+            window.validateAndNormalizeBrand = validateAndNormalizeBrand;
+          });
+        }
+        // ----------------------------------------------------------------------------------
+        // FIM AUTOCOMPLETE FUZZY PARA MARCAS
+        // ----------------------------------------------------------------------------------
+
+        function populateSistemaOptions(areaValue) {
+          if (!sistemaSelect) return;
+
+          let opts =
+            (window.OcorrenciaOptions &&
+              window.OcorrenciaOptions.getSistemaOptions(areaValue)) ||
+            [];
+
+          sistemaSelect.innerHTML = '';
+
+          const emptyOpt = document.createElement('option');
+          emptyOpt.value = '';
+          emptyOpt.textContent = '-- Selecione o sistema --';
+          sistemaSelect.appendChild(emptyOpt);
+
+          // opções normais
+          opts.forEach(txt => {
+            const o = document.createElement('option');
+            o.value = txt;
+            o.textContent = txt;
+            sistemaSelect.appendChild(o);
+          });
+
+          // ✅ AQUI está o que faltava
+          if (ALLOW_OUTRO_OPTIONS) {
+            const outro = document.createElement('option');
+            outro.value = 'Outro...';
+            outro.textContent = 'Outro...';
+            sistemaSelect.appendChild(outro);
+          }
+        }
+
+
+        function populateProblemaOptionsBySistema(systemLabel) {
+          if (!problemaSelect) return;
+
+          let opts = [];
+          if (!systemLabel) {
+            const areaChecked = document.querySelector('input[name="area_radio"]:checked');
+            const areaVal = areaChecked ? areaChecked.value : '';
+            opts = (window.OcorrenciaOptions && areaVal ? OcorrenciaOptions.getProblemaOptions(areaVal) : []);
+          } else {
+            opts = (window.OcorrenciaOptions && OcorrenciaOptions.getProblemaOptionsBySistema(systemLabel)) || [];
+          }
+
+          // ✅ bloqueia "Outro..." pra anônimo
+          if (!ALLOW_OUTRO_OPTIONS) {
+            opts = (opts || []).filter(x => x !== 'Outro...');
+          }
+
+          problemaSelect.innerHTML = '';
+          const emptyOpt = document.createElement('option');
+          emptyOpt.value = '';
+          emptyOpt.textContent = '-- Selecione o tipo de problema --';
+          problemaSelect.appendChild(emptyOpt);
+
+          (opts || []).forEach(txt => {
+            const o = document.createElement('option');
+            o.value = txt;
+            o.textContent = txt;
+            problemaSelect.appendChild(o);
+          });
+        }
+
+        function updateConditionalFields() {
+          const selectedArea = document.querySelector('input[name="area_radio"]:checked');
+
+          if (selectedArea) {
+            const areaValue = selectedArea.value;
+
+            // Tipo de ECU: Exibir para IMMO, Diagnosis e BOX360
+            if (areaValue === 'IMMO' || areaValue === 'Diagnosis' || areaValue === 'BOX360') {
+              ecuField.style.display = 'flex';
+              // chaveField logic remains separated
+            } else {
+              ecuField.style.display = 'none';
+              document.getElementById('tipo_ecu').value = ''; // Limpa o valor
+            }
+
+            if (areaValue === 'IMMO') {
+              chaveField.style.display = 'flex';
+            } else {
+              chaveField.style.display = 'none';
+              document.getElementById('tipo_chave').value = ''; // Limpa o valor
+            }
+
+            // Tipo de Motor: Exibir apenas para Diagnosis
+            if (areaValue === 'Diagnosis') {
+              motorField.style.display = 'flex';
+            } else {
+              motorField.style.display = 'none';
+              document.getElementById('tipo_motor').value = ''; // Limpa o valor
+            }
+
+            // Sistema: Exibir e popular para IMMO, Diagnosis e BOX360; ocultar para Device
+            if (sistemaField && sistemaSelect) {
+              if (areaValue === 'IMMO' || areaValue === 'Diagnosis' || areaValue === 'BOX360') {
+                sistemaField.style.display = 'flex';
+                sistemaSelect.required = true;
+                populateSistemaOptions(areaValue);
+              } else { // Device
+                sistemaField.style.display = 'none';
+                sistemaSelect.required = false;
+                sistemaSelect.value = '';
+              }
+            }
+
+            // Tipo de Problema: relacionado ao Sistema selecionado
+            if (problemaField && problemaSelect) {
+              if (areaValue === 'IMMO' || areaValue === 'Diagnosis' || areaValue === 'BOX360') {
+                problemaField.style.display = 'flex';
+                problemaSelect.required = true;
+                const currentSystem = sistemaSelect ? sistemaSelect.value : '';
+                if (currentSystem) {
+                  populateProblemaOptionsBySistema(currentSystem);
+                } else {
+                  problemaSelect.innerHTML = '<option value="">-- Selecione o tipo de problema --</option>';
+                }
+              } else { // Device
+                problemaField.style.display = 'none';
+                problemaSelect.required = false;
+                problemaSelect.value = '';
+              }
+            }
+          } else {
+            // Oculta tudo se nenhuma área estiver selecionada
+            ecuField.style.display = 'none';
+            motorField.style.display = 'none';
+            chaveField.style.display = 'none';
+            document.getElementById('tipo_ecu').value = '';
+            document.getElementById('tipo_motor').value = '';
+            document.getElementById('tipo_chave').value = '';
+            if (sistemaField && sistemaSelect) {
+              sistemaField.style.display = 'none';
+              sistemaSelect.required = false;
+              sistemaSelect.value = '';
+            }
+            if (problemaField && sistemaSelect) {
+              problemaField.style.display = 'none';
+              problemaSelect.required = false;
+              problemaSelect.value = '';
+            }
+          }
+
+
+        }
+
+        // Adiciona o listener para todos os botões de rádio
+        areaRadios.forEach(radio => {
+          radio.addEventListener('change', updateConditionalFields);
+        });
+
+        if (sistemaSelect) {
+          sistemaSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            // Se selecionar 'Outro...', exibe o campo de texto
+            const sistemaOutroField = document.getElementById('sistema-outro-field');
+            
+            if (sistemaOutroField) {
+                sistemaOutroField.style.display = 'none';
+                document.getElementById('sistema_outro').required = false;
+                document.getElementById('sistema_outro').value = '';
+            }
+            populateProblemaOptionsBySistema(val);
+            
+          });
+        }
+        
+        if (problemaSelect) {
+            problemaSelect.addEventListener('change', (e) => {
+                const val = e.target.value;
+                const probOutroField = document.getElementById('problema-outro-field');
+                
+                  if (probOutroField) {
+                      probOutroField.style.display = 'none';
+                      document.getElementById('tipo_problema_outro').required = false;
+                      document.getElementById('tipo_problema_outro').value = '';
+                  }
+                
+            });
+        }
+        
+        // Auto-complete suggestions logic
+        function populateDatalist(datalistId, options) {
+            const datalist = document.getElementById(datalistId);
+            if (!datalist) return;
+            datalist.innerHTML = '';
+            
+            // Remove duplicatas e 'Outro...'
+            const uniqueOpts = Array.from(new Set(options)).filter(opt => opt !== 'Outro...');
+            
+            uniqueOpts.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt;
+                datalist.appendChild(option);
+            });
+        }
+        
+        function updateSuggestions() {
+            if (window.OcorrenciaOptions) {
+                const sistemas = window.OcorrenciaOptions.getAllSistemaOptions() || [];
+                const problemas = window.OcorrenciaOptions.getAllProblemaOptions() || [];
+                
+                populateDatalist('sistema-suggestions', sistemas);
+                populateDatalist('problema-suggestions', problemas);
+            }
+        }
+
+        // Executa na carga da página para o caso de um valor já estar selecionado (ex: erro de submissão)
+        updateConditionalFields();
+        // Re-popula quando as opções do backend estiverem disponíveis e configura as sugestões
+        if (window.OcorrenciaOptions && OcorrenciaOptions.onReady) {
+          OcorrenciaOptions.onReady(() => {
+              updateConditionalFields();
+              updateSuggestions();
+          });
+        }
+      });
+    </script>
+
+    <div class="form-pair">
+      <label for="serial">{% trans "Serial" %}</label>
+      <input type="text" id="serial" name="serial" />
+      <small id="serial-hint" class="serial-hint"></small>
+    </div>
+
+    <div class="form-pair">
+      <label for="vin">{% trans "VIN" %}</label>
+      <input type="text" id="vin" name="vin" required maxlength="17" />
+    </div>
+
+    <div class="form-pair autocomplete-wrapper" id="brand-autocomplete-wrapper" style="position: relative;">
+      <label for="brand">{% trans "Marca" %}</label>
+      <input
+        type="text"
+        id="brand"
+        name="brand"
+        required
+        autocomplete="off"
+        placeholder="Digite para buscar a marca..."
+      />
+      <div id="brand-suggestions" class="autocomplete-suggestions" style="display:none;"></div>
+    </div>
+
+    <div class="form-pair">
+      <label for="contact">{% trans "Telefone de contato" %}</label>
+      <input type="text" id="contact" name="contact" required />
+    </div>
+
+    <div class="form-pair">
+      <label for="model">{% trans "Modelo" %}</label>
+      <input type="text" id="model" name="model" required />
+    </div>
+
+    <div class="form-pair">
+      <label for="year">{% trans "Ano" %}</label>
+      <input type="text" id="year" name="year" required />
+    </div>
+
+    <div class="form-pair conditional-field" id="ecu-field" style="display: none;">
+      <label for="tipo_ecu">{% trans "Tipo de ECU" %}</label>
+      <input type="text" id="tipo_ecu" name="tipo_ecu" />
+    </div>
+
+    <div class="form-pair conditional-field" id="motor-field" style="display: none;">
+      <label for="tipo_motor">{% trans "Tipo de Motor" %}</label>
+      <input type="text" id="tipo_motor" name="tipo_motor" />
+    </div>
+    <div class="form-pair conditional-field" id="chave-field" style="display: none;">
+      <label for="tipo_chave">{% trans "Tipo Chave" %}</label>
+
+      <select id="tipo_chave" name="tipo_chave">
+        <option value="">{% trans "-- Selecione o tipo de chave --" %}</option>
+        <option value="Canivete">{% trans "Canivete" %}</option>
+        <option value="Seca">{% trans "Seca " %}</option>
+        <option value="Presença">{% trans "Presença" %}</option>
+      </select>
+    </div>
+
+
+    <div class="form-pair conditional-field" id="sistema-field" style="display: none;">
+      <label for="sistema">{% trans "Sistema" %}</label>
+      <select id="sistema" name="sistema"></select>
+    </div>
+
+    {% comment %} <div class="form-pair conditional-field" id="sistema-outro-field" style="display: none;">
+      <label for="sistema_outro">{% trans "Outro Sistema - Descreva" %}</label>
+      <input type="text" id="sistema_outro" name="sistema_outro" list="sistema-suggestions" placeholder="Digite o nome do novo sistema..." autocomplete="off" />
+      <datalist id="sistema-suggestions"></datalist>
+    </div> {% endcomment %}
+
+    <div class="form-pair conditional-field" id="problema-field" style="display: none;">
+      <label for="tipo_problema">{% trans "Tipo de Problema" %}</label>
+      <select id="tipo_problema" name="tipo_problema"></select>
+    </div>
+    
+    {% comment %} <div class="form-pair conditional-field" id="problema-outro-field" style="display: none;">
+      <label for="tipo_problema_outro">{% trans "Outro Problema - Descreva" %}</label>
+      <input type="text" id="tipo_problema_outro" name="tipo_problema_outro" list="problema-suggestions" placeholder="Digite o novo tipo de problema..." autocomplete="off" />
+      <datalist id="problema-suggestions"></datalist>
+    </div> {% endcomment %}
+
+
+    <div class="form-pair">
+      <label for="version">{% trans "Versão" %}</label>
+      <input type="text" id="version" name="version" required />
+    </div>
+
+
+    {% if has_full_permission %}
+    <div class="form-pair">
+      <label for="deadline">{% trans "Deadline" %}</label>
+      <input type="text" id="deadline" name="deadline" required />
+    </div>
+    {% endif %}
+
+    <div class="form-pair">
+      <label for="status">{% trans "Status" %}</label>
+      <select id="status" name="status">
+        <option value="Requisitado" selected="selected">{% trans "Status padrão" %}</option>
+        <option value="Aguardando China">{% trans "Aguardando China" %}</option>
+      </select>
+    </div>
+
+    <div class="form-pair full-width">
+      <label for="problem_detected">{% trans "Problema Detectado" %}</label>
+      <textarea id="problem_detected" name="problem_detected" required></textarea>
+    </div>
+
+    <div class="file-upload-wrapper full-width">
+      <label>{% trans "Anexar Arquivo(s)" %}</label>
+      <div id="file-preview-container" class="file-preview-container"></div>
+      <span style="display:flex; gap:20px;">
+        <div class="file-upload">
+          <label for="arquivo" class="custom-file-button">{% trans "Selecionar Arquivos" %}</label>
+          <input type="file" id="arquivo" name="arquivo" multiple />
+        </div>
+        <button type="button" id="clear-all-files-btn" class="clear-all-files-btn" style="display: none;">Limpar Tudo</button>
+      </span>
+    </div>
+
+    <div class="form-pair full-width">
+      <button type="submit" id="submit-btn" required>
+        <span id="button-text" style="color:#fff">{% trans "Cadastrar Ocorrência" %}</span>
+        <span class="spinner" id="button-spinner"></span>
+      </button>
+    </div>
+  </form>
+
+  <div id="error-popup-overlay" style="display:none;">
+    <div id="error-popup-content">
+      <h3 id="popup-title" style="margin-bottom: 10px;"></h3>
+      <p id="popup-message" style="text-align: center; margin-bottom: 20px;"></p>
+      <button id="error-popup-close-btn"
+        style="background-color: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer;">Fechar</button>
+    </div>
+  </div>
+
+
+  <script>
+    // Dados do backend
+    const responsaveisPorPais = {{ responsaveis_por_pais| safe }};
+    const todosResponsaveis = {{ todos_responsaveis| safe }};
+    const paises = JSON.parse('{{ paises_json|safe }}');
+
+    // Mapeamento reverso: responsável -> países
+    const paisesPorResponsavel = {};
+    Object.keys(responsaveisPorPais).forEach(paisId => {
+      responsaveisPorPais[paisId].forEach(responsavel => {
+        if (!paisesPorResponsavel[responsavel.name]) {
+          paisesPorResponsavel[responsavel.name] = [];
+        }
+        paisesPorResponsavel[responsavel.name].push(parseInt(paisId));
+      });
+    });
+
+    // Funções de navegação
+    function newUser() { window.location.href = "{% url 'criar_usuario' %}"; }
+    function redirecionar() { window.location.href = "/"; }
+    function logOut() { window.location.href = "{% url 'logout' %}"; }
+    function handleLogin() { window.location.href = "{% url 'painel_home' %}"; }
+
+    // Função do Popup genérico
+    function showPopup(type, title, message) {
+      const overlay = document.getElementById('error-popup-overlay');
+      const titleElement = document.getElementById('popup-title');
+      const messageElement = document.getElementById('popup-message');
+      const contentElement = document.getElementById('error-popup-content');
+      const closeBtn = document.getElementById('error-popup-close-btn');
+
+      // Configura cores e ícones baseados no tipo
+      if (type === 'error') {
+        titleElement.style.color = 'var(--error)';
+        contentElement.style.borderTop = '4px solid var(--error)';
+      } else { // success
+        titleElement.style.color = '#2e7d32';
+        contentElement.style.borderTop = '4px solid #2e7d32';
+      }
+
+      titleElement.textContent = title;
+      messageElement.textContent = message;
+      overlay.style.display = 'flex';
+
+      closeBtn.onclick = () => {
+        overlay.style.display = 'none';
+        if (type === 'success') {
+          // Redirecionar ou outras ações após sucesso, se necessário
+        }
+      };
+    }
+
+    // Elementos do DOM
+    const submitBtn = document.getElementById('submit-btn');
+    const submitBtnText = document.getElementById('button-text');
+    const submitBtnSpinner = document.getElementById('button-spinner');
+    const formOcorrencia = document.getElementById('form-ocorrencia');
+
+    // Listener de inicialização do DOM
+    document.addEventListener('DOMContentLoaded', function () {
+      flatpickr('#deadline', { 'allowInput': false, 'dateFormat': 'd/m/Y', 'minDate': 'today' });
+
+      // Elementos do DOM para filtros
+      const countrySelect = document.getElementById('country');
+      const responsibleSelect = document.getElementById('responsible');
+      const inputTicket = document.getElementById('span_ticket');
+      const ticketField = document.getElementById("ticket");
+
+      // Funções de filtro para selects
+
+      // ----------------------------------------------------------------------------------
+      // LÓGICA DE VALIDAÇÃO THINKCAR
+      // ----------------------------------------------------------------------------------
+
+      const deviceSelect = document.getElementById('device');
+      const serialInput = document.getElementById('serial');
+      const serialHint = document.getElementById('serial-hint');
+      let todosEquipamentos = JSON.stringify({{ todos_equipamentos_raw| safe }}); // Lista de {id: X, name: 'Y'}
+    todosEquipamentos = JSON.parse(todosEquipamentos)
+    // Encontra o ID do equipamento Thinkcar para usar na lógica de validação
+    const thinkcarDevice = todosEquipamentos.find(d => d.name.toUpperCase().includes('THINKCAR') || d.name.toUpperCase().includes('READER'));
+
+    // Função de validação do serial (a mesma fornecida pelo usuário)
+    function validarSerial(serial) {
+      // Remove espaços e converte para maiúsculas
+      serial = serial.trim().toUpperCase();
+
+      // Padrão regex para Thinkcar: 12 alfanuméricos
+      const padrao = /^[A-Za-z0-9]{0,12}$/;
+      return padrao.test(serial);
+    }
+
+    function checkThinkcarValidation() {
+      if (!thinkcarDevice) return true; // Se não houver Thinkcar cadastrado, ignora a validação
+
+      const selectedDeviceId = deviceSelect.value;
+      const selectedDevice = todosEquipamentos.find(d => d.id == selectedDeviceId);
+
+      // Verifica se o equipamento selecionado é um Thinkcar
+      // Verifica se o equipamento selecionado é um Thinkcar OU um Reader
+      const isThinkcar = selectedDevice && (selectedDevice.name.toUpperCase().includes('THINKCAR') || selectedDevice.name.toUpperCase().includes('READER'));
+
+      // Se o campo serial não existir, não faz nada (embora deva existir)
+      if (!serialInput) return true;
+
+      if (isThinkcar) {
+        serialHint.style.display = 'block';
+        serialHint.textContent = "Serial obrigatório para Thinkcar: 12 alfanuméricos.";
+
+        const isValid = validarSerial(serialInput.value);
+        if (!isValid) {
+          serialInput.style.borderColor = 'var(--error)';
+          serialInput.style.boxShadow = '0 0 4px var(--error)';
+          return false;
+        } else {
+          serialInput.style.borderColor = '';
+          serialInput.style.boxShadow = '';
+          return true;
+        }
+      } else {
+        serialHint.style.display = 'none';
+        serialInput.style.borderColor = '';
+        serialInput.style.boxShadow = '';
+        return true;
+      }
+    }
+
+    // Adiciona event listeners para validação em tempo real
+    deviceSelect.addEventListener('change', checkThinkcarValidation);
+    serialInput.addEventListener('input', checkThinkcarValidation);
+
+    // ----------------------------------------------------------------------------------
+    // FIM DA LÓGICA DE VALIDAÇÃO THINKCAR
+    // ----------------------------------------------------------------------------------
+    function filterResponsiblesByCountry(countryId) {
+      const currentResponsible = responsibleSelect.value;
+      responsibleSelect.innerHTML = '<option value="">-- Selecione o responsável --</option>';
+      const responsaveisParaMostrar = !countryId ? todosResponsaveis : (responsaveisPorPais[countryId] || []);
+
+      responsaveisParaMostrar.forEach(responsavel => {
+        const option = document.createElement('option');
+        option.value = responsavel.name;
+        option.textContent = responsavel.name;
+        responsibleSelect.appendChild(option);
+      });
+
+      if (currentResponsible && responsaveisParaMostrar.some(r => r.name === currentResponsible)) {
+        responsibleSelect.value = currentResponsible;
+      }
+    }
+
+    function filterCountriesByResponsible(responsibleName) {
+      const paisesDoResponsavel = paisesPorResponsavel[responsibleName] || [];
+      Array.from(countrySelect.options).forEach(option => {
+        if (option.value === '') return;
+        option.style.display = !responsibleName || paisesDoResponsavel.includes(parseInt(option.value)) ? 'block' : 'none';
+      });
+    }
+
+    function isValidCombination(countryId, responsibleName) {
+      if (!countryId || !responsibleName) return true;
+      const responsaveisValidos = responsaveisPorPais[countryId] || [];
+      return responsaveisValidos.some(resp => resp.name === responsibleName);
+    }
+
+    // Lógica de visibilidade do campo Ticket
+    inputTicket.style.display = 'block';
+    ticketField.required = false;
+    countrySelect.addEventListener('change', function (e) {
+      ticketField.value = '';
+      const nomePais = paises[e.target.value];
+      const showTicket = nomePais;
+      inputTicket.style.display = showTicket ? 'block' : 'none';
+    });
+
+    // Lógica de filtros de selects para admin
+    if ('{{has_full_permission}}' == 'True') {
+      filterResponsiblesByCountry('');
+      countrySelect.addEventListener('change', function () {
+        if (responsibleSelect.value && !isValidCombination(this.value, responsibleSelect.value)) {
+          responsibleSelect.value = '';
+        }
+        filterResponsiblesByCountry(this.value);
+      });
+      responsibleSelect.addEventListener('change', function () {
+        if (countrySelect.value && !isValidCombination(countrySelect.value, this.value)) {
+          countrySelect.value = '';
+        }
+        filterCountriesByResponsible(this.value);
+      });
+    }
+
+    // ----------------------------------------------------------------------------------
+    // LÓGICA DE VALIDAÇÃO THINKCAR (MOVIDA PARA DENTRO DO DOMContentLoaded)
+    // ----------------------------------------------------------------------------------
+
+    // --- LÓGICA DE UPLOAD DE ARQUIVOS COM PRÉ-VISUALIZAÇÃO ---
+    const uploadWrapper = document.querySelector('.file-upload-wrapper');
+    const fileInput = document.getElementById('arquivo');
+    const previewContainer = document.getElementById('file-preview-container');
+    const clearAllBtn = document.getElementById('clear-all-files-btn');
+
+    if (uploadWrapper && fileInput && previewContainer && clearAllBtn) {
+      let fileStore = new DataTransfer();
+
+      const renderPreviews = () => {
+        previewContainer.innerHTML = '';
+        Array.from(fileStore.files).forEach((file, index) => {
+          const card = document.createElement('div');
+          card.className = 'file-preview-card';
+          card.innerHTML = `<span class="file-name" title="${file.name}">${file.name}</span><button type="button" class="remove-file-btn" data-index="${index}">&times;</button>`;
+          previewContainer.appendChild(card);
+        });
+        clearAllBtn.style.display = fileStore.files.length > 0 ? 'block' : 'none';
+        fileInput.files = fileStore.files;
+      };
+
+      const MAX_FILE_SIZE = 1024 * 1024 * 1024; // 1GB em bytes
+
+      const handleFiles = (files) => {
+        for (const file of files) {
+          if (file.size > MAX_FILE_SIZE) {
+            showPopup(
+              'error',
+              'Arquivo muito grande',
+              `O arquivo "${file.name}" excede o limite de 1GB e não pode ser enviado.`
+            );
+            continue; // pula o arquivo grande
+          }
+          fileStore.items.add(file);
+        }
+        renderPreviews();
+      };
+
+
+      previewContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-file-btn')) {
+          const indexToRemove = parseInt(e.target.dataset.index, 10);
+          const newFiles = new DataTransfer();
+          Array.from(fileStore.files).forEach((file, index) => {
+            if (index !== indexToRemove) { newFiles.items.add(file); }
+          });
+          fileStore = newFiles;
+          renderPreviews();
+        }
+      });
+
+      clearAllBtn.addEventListener('click', () => {
+        fileStore = new DataTransfer();
+        renderPreviews();
+      });
+
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadWrapper.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+      });
+      ['dragenter', 'dragover'].forEach(eventName => {
+        uploadWrapper.addEventListener(eventName, () => uploadWrapper.classList.add('drag-over'), false);
+      });
+      ['dragleave', 'drop'].forEach(eventName => {
+        uploadWrapper.addEventListener(eventName, () => uploadWrapper.classList.remove('drag-over'), false);
+      });
+      uploadWrapper.addEventListener('drop', e => handleFiles(e.dataTransfer.files), false);
+      fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+    }
+
+    // Event listener para o submit do formulário
+    formOcorrencia.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Garante que os campos ocultos não sejam enviados com valores antigos
+      if (document.getElementById('ecu-field').style.display === 'none') {
+        document.getElementById('tipo_ecu').value = '';
+      }
+      if (document.getElementById('motor-field').style.display === 'none') {
+        document.getElementById('tipo_motor').value = '';
+      }
+      if (document.getElementById('chave-field').style.display === 'none') {
+        document.getElementById('tipo_chave').value = '';
+      }
+      if (document.getElementById('sistema-field').style.display === 'none') {
+        const sis = document.getElementById('sistema');
+        if (sis) sis.value = '';
+      }
+      if (document.getElementById('problema-field').style.display === 'none') {
+        const prob = document.getElementById('tipo_problema');
+        if (prob) prob.value = '';
+      }
+
+      const form = e.target;
+      
+      if (typeof window.validateAndNormalizeBrand === 'function') {
+        const okBrand = window.validateAndNormalizeBrand();
+        if (!okBrand) {
+          showPopup('error', 'Marca inválida', 'Selecione uma marca válida sugerida pelo sistema.');
+          brandInput.focus();
+          return;
+        }
+      }
+      const data = new FormData(form);
+      // Validação básica do país (frontend)
+      if (form.querySelector('#country') && form.querySelector('#country').value === "") {
+        showPopup('error', 'Falha', 'Por favor, selecione um país.');
+        return;
+      }
+
+      // Validação Thinkcar (frontend)
+      if (!checkThinkcarValidation()) {
+        // A função checkThinkcarValidation já estiliza o campo com erro
+        showPopup('error', 'Falha', 'Serial inválido para o equipamento Thinkcar selecionado.');
+        return;
+      }
+
+      submitBtnText.style.display = 'none';
+      submitBtnSpinner.classList.add('visible');
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch("{% url 'subir_ocorrencia' %}", {
+          method: "POST",
+          headers: { 'X-CSRFToken': data.get('csrfmiddlewaretoken') },
+          body: data,
+          credentials: 'same-origin'
+        });
+
+        // Verifica se a resposta é JSON (sucesso/erro tratado)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const result = await response.json();
+
+          if (result.status === "success") {
+            showPopup('success', 'Sucesso', result.message);
+            form.reset();
+            document.getElementById('clear-all-files-btn').click();
+
+            if ('{{has_full_permission}}' == 'True') {
+              const responsibleSelect = document.getElementById('responsible');
+              responsibleSelect.innerHTML = '<option value="">-- Selecione o responsável --</option>';
+              todosResponsaveis.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.name;
+                opt.textContent = r.name;
+                responsibleSelect.appendChild(opt);
+              });
+            }
+          } else {
+            // Exibe mensagem de erro específica do backend
+            showPopup('error', 'Falha', result.message || "Erro ao processar a requisição.");
+          }
+        } else {
+          // Se não for JSON, trata como erro genérico
+          throw new Error('Resposta inesperada do servidor');
+        }
+      } catch (error) {
+        // Captura erros de rede ou outros erros inesperados
+        showPopup('error', 'Erro inesperado', error.message || "Ocorreu um erro inesperado. Tente novamente.");
+      } finally {
+        submitBtnText.style.display = 'inline';
+        submitBtnSpinner.classList.remove('visible');
+        submitBtn.disabled = false;
+      }
+    });
+	  });
+  </script>
+</body>
+
+</html>

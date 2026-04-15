@@ -1,0 +1,62 @@
+.circle{
+    width: 1em;
+    height: 1em;
+    background-color: white;
+    border-radius: 50%;
+    vertical-align: middle;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    cursor: pointer;
+    border: #000 1px solid;
+}
+
+.circle:checked {
+    background-color: #000;
+}
+
+.square{
+    width: 1em;
+    height: 1em;
+    background-color: white;
+    vertical-align: middle;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    cursor: pointer;
+    border: #000 1px solid;
+}
+.square:checked {
+    background-color: #000;
+}
+
+.triangle{
+    position: relative;
+    width: 1em;
+    height: 1em;
+    background-color: #000;
+    vertical-align: middle;
+    appearance: none;
+    -webkit-appearance: none;
+    outline: none;
+    cursor: pointer;
+    -webkit-clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.triangle::after{
+    content: '';
+    width: .9em;
+    height: .9em;
+    background: #fff;
+    display: block;
+    position: absolute;
+    top: 1px;
+    left: .9px;
+    -webkit-clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+}
+
+.triangle:checked::after{
+    background-color: #000;
+}

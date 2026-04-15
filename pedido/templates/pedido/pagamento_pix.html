@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pagamento PIX</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-800">
+  <div class="min-h-screen py-8 px-4">
+    <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <section class="bg-white rounded-3xl shadow p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-2xl font-black">Pagamento via PIX</h1>
+            <p class="text-sm text-slate-500 mt-1">Tela de simulação para geração e consulta do QR Code.</p>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-500">Venda</div>
+            <div class="text-lg font-black">#{{ venda.id }}</div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <button id="btnGerar" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-2xl py-4 font-black text-lg shadow">
+            Gerar QR Code PIX
+          </button>
+
+          <button id="btnConsultar" class="w-full bg-slate-700 hover:bg-slate-800 text-white rounded-2xl py-4 font-black text-lg shadow">
+            Consultar status do PIX
+          </button>
+
+          <div id="statusBox" class="hidden rounded-2xl p-4 text-sm font-bold"></div>
+
+          <div id="qrWrap" class="hidden rounded-2xl border bg-slate-50 p-4">
+            <div class="text-sm font-bold mb-2">QR Code</div>
+            <img id="qrImg" class="mx-auto max-w-[280px] rounded-xl border bg-white p-2" alt="QR Code PIX">
+          </div>
+
+          <div id="payloadWrap" class="hidden">
+            <label class="block text-sm font-bold mb-2">PIX Copia e Cola</label>
+            <textarea id="pixPayload" rows="6" class="w-full border rounded-2xl px-4 py-3 text-sm"></textarea>
+            <button id="btnCopiar" class="mt-3 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold">
+              Copiar código PIX
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="bg-white rounded-3xl shadow p-6">
+        <h2 class="text-xl font-black mb-4">Resumo do pedido</h2>
+
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Cliente</span>
+            <span class="font-bold text-right">{{ venda.nome_cliente }}</span>
+          </div>
+
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Documento</span>
+            <span class="font-bold text-right">{{ venda.documento }}</span>
+          </div>
+
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Pagamento</span>
+            <span class="font-bold text-right">{{ venda.forma_pagamento }}</span>
+          </div>
+        </div>
+
+        <hr class="my-5">
+
+        <pre id="rawBox" class="mt-5 bg-slate-900 text-slate-100 rounded-2xl p-4 text-xs overflow-auto hidden whitespace-pre-wrap"></pre>
+      </aside>
+    </div>
+  </div>
+
+<script>
+  const endpointGerar = "{{ link_gerar }}";
+  const endpointConsultar = "{{ link_consultar }}";
+
+  const btnGerar = document.getElementById("btnGerar");
+  const btnConsultar = document.getElementById("btnConsultar");
+  const btnCopiar = document.getElementById("btnCopiar");
+  const statusBox = document.getElementById("statusBox");
+  const rawBox = document.getElementById("rawBox");
+  const qrWrap = document.getElementById("qrWrap");
+  const qrImg = document.getElementById("qrImg");
+  const payloadWrap = document.getElementById("payloadWrap");
+  const pixPayload = document.getElementById("pixPayload");
+
+  const pixExistenteData = `{{ pix_existente_data|default:''|escapejs }}`;
+  const pixExistenteImagem = `{{ pix_existente_imagem|default:''|escapejs }}`;
+
+  if (pixExistenteImagem) {
+    qrImg.src = `data:image/png;base64,${pixExistenteImagem}`;
+    qrWrap.classList.remove("hidden");
+  }
+  if (pixExistenteData) {
+    pixPayload.value = pixExistenteData;
+    payloadWrap.classList.remove("hidden");
+  }
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return "";
+  }
+
+  function showStatus(message, type = "info") {
+    statusBox.classList.remove(
+      "hidden",
+      "bg-red-100", "text-red-700",
+      "bg-green-100", "text-green-700",
+      "bg-blue-100", "text-blue-700"
+    );
+
+    if (type === "error") {
+      statusBox.classList.add("bg-red-100", "text-red-700");
+    } else if (type === "success") {
+      statusBox.classList.add("bg-green-100", "text-green-700");
+    } else {
+      statusBox.classList.add("bg-blue-100", "text-blue-700");
+    }
+
+    statusBox.textContent = message;
+  }
+
+  function showRaw(data) {
+    rawBox.classList.remove("hidden");
+    try {
+      rawBox.textContent = JSON.stringify(data, null, 2);
+    } catch {
+      rawBox.textContent = String(data);
+    }
+  }
+
+  function resetPixVisual() {
+    qrWrap.classList.add("hidden");
+    payloadWrap.classList.add("hidden");
+    qrImg.removeAttribute("src");
+    pixPayload.value = "";
+  }
+
+  btnGerar.addEventListener("click", async () => {
+    btnGerar.disabled = true;
+    resetPixVisual();
+    showStatus("Gerando QR Code PIX...", "info");
+
+    try {
+      const res = await fetch(endpointGerar, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify({})
+      });
+
+      const contentType = res.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? await res.json().catch(() => ({}))
+        : { ok: false, message: "Resposta não veio em JSON.", raw: await res.text().catch(() => "") };
+
+      showRaw(data);
+
+      if (data.ok) {
+        showStatus(data.message || "QR Code PIX disponível.", "success");
+
+        if (data.qr_code_image) {
+          qrImg.src = `data:image/png;base64,${data.qr_code_image}`;
+          qrWrap.classList.remove("hidden");
+        }
+
+        if (data.qr_code_data) {
+          pixPayload.value = data.qr_code_data;
+          payloadWrap.classList.remove("hidden");
+        }
+
+        if (!data.qr_code_image && !data.qr_code_data) {
+          showStatus("PIX retornado sem QR visual nem payload.", "error");
+        }
+      } else {
+        showStatus(data.message || "Falha ao gerar QR Code PIX.", "error");
+      }
+    } catch (e) {
+      showStatus("Erro de conexão ao gerar PIX.", "error");
+      showRaw(String(e));
+    } finally {
+      btnGerar.disabled = false;
+    }
+  });
+
+  btnConsultar.addEventListener("click", async () => {
+    btnConsultar.disabled = true;
+    showStatus("Consultando status do PIX...", "info");
+
+    try {
+      const res = await fetch(endpointConsultar, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        }
+      });
+
+      const contentType = res.headers.get("content-type") || "";
+      const data = contentType.includes("application/json")
+        ? await res.json().catch(() => ({}))
+        : { ok: false, message: "Resposta não veio em JSON.", raw: await res.text().catch(() => "") };
+
+      showRaw(data);
+
+      if (data.ok && data.pago) {
+        showStatus("PIX identificado como pago.", "success");
+      } else if (data.ok) {
+        showStatus(`Status atual: ${data.status_pix || "pendente"}`, "info");
+      } else {
+        showStatus(data.message || "Não foi possível consultar o PIX.", "error");
+      }
+    } catch (e) {
+      showStatus("Erro de conexão ao consultar PIX.", "error");
+      showRaw(String(e));
+    } finally {
+      btnConsultar.disabled = false;
+    }
+  });
+
+  btnCopiar?.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(pixPayload.value || "");
+      showStatus("Código PIX copiado.", "success");
+    } catch (e) {
+      showStatus("Não foi possível copiar o código PIX.", "error");
+    }
+  });
+</script>
+</body>
+</html>

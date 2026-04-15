@@ -1,0 +1,2308 @@
+{# templates/pedido/index.html #}
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Painel de Vendas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --primary: #0056b3;
+      --primary-light: #3a7bc8;
+      --secondary: #0a2e5a;
+
+      --dark: #1a1a1a;
+      --light: #ffffff;
+      --gray: #f5f7fa;
+
+      --text: #333333;
+      --text-light: #6b7280;
+
+      --error: #ffb6b6;
+      --error-text: #cc0000;
+      --success: #d4edda;
+      --success-text: #155724;
+      --warning: #fff3cd;
+      --warning-text: #856404;
+
+      --border: #e2e8f0;
+      --shadow: rgba(0,0,0,.08);
+      --focus: rgba(0,86,179,.18);
+    }
+
+    body { background: var(--gray); color: var(--text); }
+
+    .card {
+      background: var(--light);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 6px 18px var(--shadow);
+    }
+
+    .topbar {
+      background: var(--primary);
+      color: var(--light);
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(0,86,179,.18);
+    }
+
+    .muted { color: var(--text-light); }
+
+    .input {
+      width: 100%;
+      background: #fff;
+      border: 1px solid #d6d6d6;
+      border-radius: 12px;
+      padding: 10px 12px;
+      outline: none;
+      transition: .18s ease-in-out;
+      color: var(--text);
+    }
+    .input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--focus);
+    }
+
+    .btn-primary {
+      background: var(--secondary);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 800;
+      transition: .2s ease;
+    }
+    .btn-primary:hover { background: var(--primary); }
+
+    .btn-open {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 800;
+      transition: .2s ease;
+    }
+    .btn-open:hover { background: #004080; }
+    .btn-open:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #cfe2ff;
+      background: #eaf3ff;
+      color: #0b3d7a;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .panel-title {
+      font-weight: 900;
+      color: var(--secondary);
+    }
+
+    .divider { border-top: 1px solid var(--border); }
+
+    .box-readonly {
+      background: #f8fafc;
+      border: 1px solid #e5ecf4;
+      border-radius: 12px;
+      padding: 12px;
+      color: var(--text);
+      white-space: pre-wrap;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-light);
+    }
+    .status.is-error {
+      background: var(--error);
+      border-color: rgba(204,0,0,.25);
+      color: var(--error-text);
+      font-weight: 800;
+    }
+    .status.is-success {
+      background: var(--success);
+      border-color: rgba(21,87,36,.18);
+      color: var(--success-text);
+      font-weight: 800;
+    }
+    .status.is-warn {
+      background: var(--warning);
+      border-color: rgba(133,100,4,.18);
+      color: var(--warning-text);
+      font-weight: 800;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid #e5ecf4;
+      background: #f8fafc;
+      font-weight: 800;
+      color: #0b3d7a;
+      font-size: 12px;
+    }
+
+    /* ========================================================= */
+    /* ESTILOS DO CHECKLIST DE DOCUMENTOS E ANIMAÇÕES */
+    /* ========================================================= */
+    .check-label {
+      transition: color 0.3s ease;
+    }
+    .check-label.is-done {
+      text-decoration: line-through;
+      color: #9ca3af;
+    }
+
+    .icon-wrapper {
+      position: relative;
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+    }
+
+    .icon-pendent, .icon-done {
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .icon-done {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+
+    .icon-done.is-done {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .icon-pendent.is-done {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+
+    /* =========================
+    Toggle bonito (Entrega)
+    ========================= */
+    .toggle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      user-select:none;
+      cursor:pointer;
+    }
+
+    .toggle input{
+      position:absolute;
+      opacity:0;
+      width:1px;
+      height:1px;
+    }
+
+    .toggle .track{
+      width:52px;
+      height:30px;
+      border-radius:999px;
+      background:#e5ecf4;
+      border:1px solid #d6d6d6;
+      position:relative;
+      transition:.18s ease-in-out;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+    }
+
+    .toggle .track::after{
+      content:"";
+      position:absolute;
+      top:50%;
+      left:3px;
+      transform:translateY(-50%);
+      width:24px;
+      height:24px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid rgba(0,0,0,.08);
+      box-shadow:0 6px 14px rgba(0,0,0,.12);
+      transition:.18s ease-in-out;
+    }
+
+    .toggle .text{
+      font-size:13px;
+      font-weight:900;
+      color:var(--secondary);
+      letter-spacing:.1px;
+      white-space:nowrap;
+    }
+
+    .toggle input:checked + .track{
+      background: rgba(0,86,179,.15);
+      border-color: rgba(0,86,179,.35);
+      box-shadow: 0 0 0 3px var(--focus);
+    }
+
+    .toggle input:checked + .track::after{
+      left:25px;
+      background:#fff;
+    }
+
+    .toggle input:checked ~ .text::after{
+      content:"  ✓";
+      color: var(--primary);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="max-w-6xl mx-auto p-6">
+    <header class="topbar p-5 mb-6 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      <div class="min-w-0">
+        <h1 class="text-2xl font-black tracking-tight">Painel de Vendas</h1>
+        <p class="text-sm opacity-90">
+          Digite CPF/CNPJ/Nome para puxar o cliente e listar <b>seus</b> orçamentos do simulador para escolher.
+        </p>
+      </div>
+
+      <div class="text-sm opacity-90 shrink-0">
+        Logado como: <span class="font-extrabold">{{ request.user }}</span>
+      </div>
+    </header>
+
+{% comment %} {% if messages %}
+    <div id="alerta-feedback" class="mb-6 space-y-3">
+      {% for message in messages %}
+        <div class="p-4 rounded-xl border flex items-center justify-between shadow-sm
+          {% if message.tags == 'error' %} bg-[#ffb6b6] border-[#cc0000]/25 text-[#cc0000] font-bold
+          {% elif message.tags == 'success' %} bg-[#d4edda] border-[#155724]/20 text-[#155724] font-bold
+          {% elif message.tags == 'warning' %} bg-[#fff3cd] border-[#856404]/20 text-[#856404] font-bold
+          {% else %} bg-blue-100 border-blue-200 text-blue-800 font-bold {% endif %}">
+          
+          <span>{{ message }}</span>
+          
+          <button onclick="this.parentElement.style.display='none'" class="text-2xl leading-none opacity-60 hover:opacity-100 transition">
+            &times;
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+
+    <script>
+      setTimeout(() => {
+        const divAlerta = document.getElementById('alerta-feedback');
+        if (divAlerta) {
+          divAlerta.style.transition = 'opacity 0.5s ease';
+          divAlerta.style.opacity = '0';
+          setTimeout(() => divAlerta.remove(), 500);
+        }
+      }, 7000);
+    </script>
+    {% endif %} {% endcomment %}
+    <section class="card p-4">
+      <div class="flex flex-col md:flex-row gap-3">
+        <input id="query" placeholder="Digite CPF, CNPJ ou nome do cliente…" class="input" autocomplete="off" />
+        <button id="btnBuscar" type="button" class="btn-primary md:w-44">Buscar</button>
+      </div>
+
+      <div class="mt-3 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+        <div id="status" class="status">Digite algo e clique em Buscar.</div>
+        <div class="flex gap-2 flex-wrap">
+          <span class="chip" id="chipCliente">Cliente: —</span>
+          <span class="chip" id="chipRegistros">Orçamentos: —</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+
+      <section class="card p-5">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <h2 class="text-lg panel-title">Cliente</h2>
+          <span id="badgeCliente" class="badge">—</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs muted font-bold">Nome</label>
+            <input id="c_nome" class="input mt-1" />
+          </div>
+          <div>
+            <label class="text-xs muted font-bold">Profissão</label>
+            <select id="c_profissao" class="input mt-1">
+              <option value="" disabled selected>Selecione</option>
+              <option value="Mecanico">Mecânico</option>
+              <option value="Chaveiro">Chaveiro</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs muted font-bold">Email</label>
+            <input id="c_email" class="input mt-1" />
+          </div>
+          <div>
+            <label class="text-xs muted font-bold">Telefone</label>
+            <input id="c_telefone" class="input mt-1" />
+          </div>
+          <div>
+            <label class="text-xs muted font-bold">CPF</label>
+            <input id="c_cpf" class="input mt-1" />
+          </div>
+          <div>
+            <label class="text-xs muted font-bold">CNPJ</label>
+            <input id="c_cnpj" class="input mt-1" />
+          </div>
+
+          <div id="wrap_ie" style="display:none">
+            <label class="text-xs muted font-bold">Inscrição Estadual</label>
+            <input id="c_ie" class="input mt-1" placeholder="Somente se tiver CNPJ" />
+          </div>
+        </div>
+
+        <hr class="divider my-4" />
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div class="md:col-span-2">
+            <label class="text-xs muted font-bold">Endereço</label>
+            <input id="c_endereco" class="input mt-1" />
+          </div>
+          <div>
+            <label class="text-xs muted font-bold">Número</label>
+            <input id="c_numero" class="input mt-1" />
+          </div>
+
+          <div>
+            <label class="text-xs muted font-bold">Complemento</label>
+            <input id="c_complemento" class="input mt-1" />
+          </div>
+          <div>
+            <label class="text-xs muted font-bold">Bairro</label>
+            <input id="c_bairro" class="input mt-1" />
+          </div>
+          <div>
+            <label class="text-xs muted font-bold">Cidade</label>
+            <input id="c_cidade" class="input mt-1" />
+          </div>
+
+          <div>
+            <label class="text-xs muted font-bold">UF</label>
+            <input id="c_uf" class="input mt-1" />
+          </div>
+          <div>
+            <label class="text-xs muted font-bold">CEP</label>
+            <div class="mt-1 flex gap-2 items-center">
+              <input id="c_cep" class="input" style="flex:1; min-width: 160px;" />
+              <button id="btnBuscarCep" type="button" class="btn-primary" style="white-space:nowrap; flex:0 0 auto;">
+                Localizar CEP
+              </button>
+            </div>
+          </div>
+
+          <div class="md:col-span-3 mt-2">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <div class="text-sm font-extrabold text-[#0a2e5a]">Entrega</div>
+                <div class="text-xs muted -mt-0.5">Use o endereço do cadastro ou escolha outro endereço salvo.</div>
+              </div>
+
+              <label class="toggle">
+                <input id="chkEntregaMesmo" type="checkbox" checked />
+                <span class="track"></span>
+                <span class="text">Mesmo do faturamento</span>
+              </label>
+            </div>
+
+            <div id="cardEntrega" class="mt-4 border border-slate-200 bg-slate-50 rounded-2xl p-4 hidden">
+              <div class="flex flex-col md:flex-row md:items-end gap-3">
+                <div class="flex-1">
+                  <label class="text-xs muted font-bold">Escolher endereço salvo</label>
+                  <select id="selEntregaEndereco" class="input mt-1">
+                    <option value="">— Selecione —</option>
+                    <option value="__new__">+ Novo endereço…</option>
+                  </select>
+                </div>
+
+                <label class="flex items-center gap-2 cursor-pointer select-none">
+                  <input id="chkEntregaPadrao" type="checkbox" class="w-4 h-4" />
+                  <span class="text-sm font-bold text-gray-700">Definir como padrão</span>
+                </label>
+              </div>
+
+              <div id="entregaPreview" class="mt-3 box-readonly hidden">—</div>
+
+              <div id="entregaNovoWrap" class="mt-4 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div class="md:col-span-3">
+                    <label class="text-xs muted font-bold">Nomear endereço</label>
+                    <input id="e_nome" class="input mt-1" placeholder="Ex: Casa, Oficina, Filial SP" />
+                  </div>
+
+                  <div class="md:col-span-2">
+                    <label class="text-xs muted font-bold">Endereço</label>
+                    <input id="e_endereco" class="input mt-1" />
+                  </div>
+                  <div>
+                    <label class="text-xs muted font-bold">Número</label>
+                    <input id="e_numero" class="input mt-1" />
+                  </div>
+
+                  <div>
+                    <label class="text-xs muted font-bold">Complemento</label>
+                    <input id="e_complemento" class="input mt-1" />
+                  </div>
+                  <div>
+                    <label class="text-xs muted font-bold">Bairro</label>
+                    <input id="e_bairro" class="input mt-1" />
+                  </div>
+                  <div>
+                    <label class="text-xs muted font-bold">Cidade</label>
+                    <input id="e_cidade" class="input mt-1" />
+                  </div>
+
+                  <div>
+                    <label class="text-xs muted font-bold">UF</label>
+                    <input id="e_uf" class="input mt-1" />
+                  </div>
+                  <div>
+                    <label class="text-xs muted font-bold">CEP</label>
+                    <div class="mt-1 flex gap-2 items-center">
+                      <input id="e_cep" class="input" style="flex:1; min-width: 160px;" />
+                      <button id="btnBuscarCepEntrega" type="button" class="btn-primary" style="white-space:nowrap; flex:0 0 auto;">
+                        Localizar CEP
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-4 flex items-center justify-end gap-3">
+                  <button id="btnSalvarEnderecoEntrega" type="button" class="btn-primary">
+                    Salvar endereço
+                  </button>
+                </div>
+
+                <p class="text-xs muted mt-2">
+                  Ao salvar, esse endereço ficará registrado no cliente para próximas vendas.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label class="text-xs muted font-bold">Observações</label>
+          <textarea id="c_observacoes" rows="4" class="input mt-1"></textarea>
+        </div>
+
+        <div class="mt-4 flex items-center gap-3">
+          <button id="btnSalvarCliente" type="button" class="btn-primary" style="display:none">
+            Salvar dados
+          </button>
+          <span id="clienteHint" class="text-sm muted" style="display:none"></span>
+        </div>
+
+        <p class="text-xs muted mt-3">
+          (Campos para autopreencher/visualizar. A gravação do cliente acontece quando você salva a venda, se seu
+          <code class="font-bold">Venda.save()</code> sincroniza.)
+        </p>
+      </section>
+
+      <section class="card p-5">
+        <div class="flex items-center justify-between gap-3 mb-4">
+          <h2 class="text-lg panel-title">Orçamentos (Simulador)</h2>
+          <div class="flex gap-2">
+            <span id="badgeStatusVenda" class="badge" style="display:none"></span>
+            <span id="badgeRegistro" class="badge">—</span>
+          </div>
+        </div>
+
+        <div class="mb-4">
+          <label class="text-xs muted font-bold">Selecione um orçamento</label>
+          <select id="selectRegistro" class="input mt-1">
+            <option value="">— Nenhum selecionado —</option>
+          </select>
+
+          <p class="text-xs muted mt-2">
+            A lista mostra apenas orçamentos do seu usuário para este cliente.
+          </p>
+        </div>
+
+        <hr class="divider my-4" />
+        <div>
+          <label class="text-xs muted font-bold">Link de pagamento</label>
+          <div class="mt-1 flex gap-2 items-center">
+            <input id="r_link_pagamento" class="input" readonly value="—" />
+            <button type="button" id="btnCopiarResumoLink" class="btn-primary">Copiar</button>
+            <button type="button" id="btnAbrirResumoLink" class="btn-open">Abrir</button>
+          </div>
+        </div>
+        <div class="space-y-3 text-sm">
+          <div class="flex flex-wrap gap-2">
+            <span class="muted font-bold">Cliente:</span>
+            <span id="r_nome_cliente">—</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <span class="muted font-bold">Documento:</span>
+            <span id="r_documento">—</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <span class="muted font-bold">Forma pagamento:</span>
+            <span id="r_forma_pagamento">—</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <span class="muted font-bold">Parcelas:</span>
+            <span id="r_parcelas">—</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <span class="muted font-bold">Vendedor:</span>
+            <span id="r_vendedor">—</span>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <span class="muted font-bold">Criado em:</span>
+            <span id="r_criado_em">—</span>
+          </div>
+
+          <div class="mt-3">
+            <div class="text-xs muted font-bold mb-1">Equipamentos</div>
+            <div id="r_equipamentos" class="box-readonly">—</div>
+          </div>
+
+          <div class="mt-3">
+            <div class="text-xs muted font-bold mb-1">Observações</div>
+            <div id="r_observacoes" class="box-readonly">—</div>
+          </div>
+        </div>
+
+        <form id="formAbrir" method="POST" class="mt-5" action="#" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <button id="btnAbrir" type="button" class="btn-open w-full" disabled>
+            Criar venda
+          </button>
+
+          <button id="btnAbrirSimulador" type="button" class="btn-primary mt-3 w-full">
+            Alterar orçamento
+          </button>
+
+          <div id="modalChecklist" class="fixed inset-0 z-[9999] flex items-center justify-center hidden"
+               style="background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px);">
+            <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 m-4 max-h-[95vh] flex flex-col relative">
+
+              <button type="button" id="btnCloseModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+
+              <h3 class="text-2xl font-black text-[#0a2e5a] pr-8">Checklist de Documentos</h3>
+              <p class="text-sm text-gray-500 mb-4 mt-1">Anexe os documentos necessários antes de criar a venda.</p>
+
+              <div id="containerEntradaBoleto" class="hidden mb-4 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                <p class="text-sm font-bold text-[#0a2e5a] mb-2">A entrada foi paga no:</p>
+                <div class="flex gap-6">
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="forma_entrada" value="Pix" checked onchange="mudarFormaEntrada(this.value)" class="w-4 h-4 text-[#0056b3]">
+                    <span class="text-sm font-semibold text-gray-700">PIX</span>
+                  </label>
+                  <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="radio" name="forma_entrada" value="Cartao" onchange="mudarFormaEntrada(this.value)" class="w-4 h-4 text-[#0056b3]">
+                    <span class="text-sm font-semibold text-gray-700">Cartão</span>
+                  </label>
+                </div>
+              </div>
+
+              <div id="containerEntradaCartao" class="hidden mb-4 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="checkEntradaAparte" onchange="toggleEntradaCartao(this.checked)" class="w-4 h-4 text-[#0056b3] rounded">
+                  <span class="text-sm font-bold text-[#0a2e5a]">Entrada paga a parte?</span>
+                </label>
+              </div>
+
+              <div id="checklistContainer" class="overflow-y-auto pr-2 space-y-3 flex-1"></div>
+
+              <div class="mt-6 pt-4 border-t border-gray-200 flex justify-end gap-3 shrink-0">
+                <button type="button" id="btnCancelModal"
+                        class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition">
+                  Voltar
+                </button>
+                <button type="button" id="btnConfirmarCriarVenda" disabled
+                        class="px-6 py-2.5 bg-[#0056b3] text-white rounded-xl font-bold hover:bg-[#004080] shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed">
+                  Confirmar e Criar Venda
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+
+        <p class="text-xs muted mt-3">
+          Esse botão criará a venda vinculada ao orçamento selecionado e te mandará para a tela de edição.
+        </p>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+  const $ = (id) => document.getElementById(id);
+
+  // estado local
+  let REGISTROS = [];
+  let CURRENT_CLIENTE_ID = null;
+  let CLIENTE_DIRTY = false;
+  let CLIENTE_ENDERECOS = [];
+  let CURRENT_REGISTRO = null;
+
+  // estado global da entrega
+  let ENTREGA_DIFERENTE = false;
+
+  // estado global dos arquivos por documento
+  let DOC_FILES = {};
+  let DOC_OBJECT_URLS = {};
+
+  // ==========================================
+  // CHECKLIST
+  // ==========================================
+  const ALL_DOCS = [
+    { id: "doc_contrato", label: "CONTRATO SOCIAL / CCMEI / DOCUMENTO PESSOAL (PF)" },
+    { id: "doc_cnpj", label: "COMPROVANTE DE INSCRIÇÃO E SITUAÇÃO CADASTRAL DO CNPJ: EMITIDO NO SITE DA RECEITA FEDERAL." },
+    { id: "doc_titular", label: "DOCUMENTO DO TITULAR (RG/CPF OU CNH)" },
+    { id: "doc_residencia", label: "COMPROVANTE DE ENDEREÇO DE FATURAMENTO (MESMO ENDEREÇO DO CONTRATO/CCMEI — ATUALIZADO 3 MESES)" },
+    { id: "doc_endereco_entrega", label: "COMPROVANTE DE ENDEREÇO DE ENTREGA (ATUALIZADO 3 MESES)" },
+    { id: "doc_pagamento", label: "COMPROVANTE DE PAGAMENTO" },
+    { id: "doc_pagamento_entrada", label: "COMPROVANTE DE PAGAMENTO (ENTRADA)" },
+    { id: "doc_antifraude", label: "CARTA ANTI-FRAUDE" },
+    { id: "doc_selfie", label: "SELFIE COM DOCUMENTO DE IDENTIFICAÇÃO" },
+    { id: "doc_serial", label: "FOTO DO SERIAL DO EQUIPAMENTO (PARA SUPORTE/ATUALIZAÇÃO)" },
+  ];
+
+  // ==========================================
+  // HELPERS
+  // ==========================================
+  function onlyDigits(v) {
+    return String(v || "").replace(/\D/g, "");
+  }
+
+  function formatBytes(bytes) {
+    const n = Number(bytes || 0);
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+    if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(n / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  }
+
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+  }
+
+  function setStatus(msg, type = "info") {
+    const el = $("status");
+    el.textContent = msg || "";
+    el.className = "status";
+    if (type === "error") el.classList.add("is-error");
+    else if (type === "success") el.classList.add("is-success");
+    else if (type === "warn") el.classList.add("is-warn");
+  }
+
+  function num(v, fallback = 0) {
+    if (v === null || v === undefined || v === "") return fallback;
+    if (typeof v === "number") return isFinite(v) ? v : fallback;
+
+    const s = String(v)
+      .replace(/[^\d,.-]/g, "")
+      .replace(/\.(?=\d{3}(\D|$))/g, "")
+      .replace(",", ".");
+
+    const n = Number(s);
+    return isFinite(n) ? n : fallback;
+  }
+
+  function normalizeEquipamentosJson(ej) {
+    if (typeof ej === "string") {
+      try { ej = JSON.parse(ej); } catch (e) {}
+    }
+    if (ej && !Array.isArray(ej) && typeof ej === "object") {
+      ej = ej.itens || ej.items || ej.equipamentos || ej.produtos || ej.data || ej.results || ej;
+    }
+    return Array.isArray(ej) ? ej : [];
+  }
+
+  // ==========================================
+  // PREVIEW MODAL
+  // ==========================================
+  function ensurePreviewModal() {
+    if ($("previewModal")) return;
+
+    const div = document.createElement("div");
+    div.id = "previewModal";
+    div.className = "fixed inset-0 z-[10000] hidden items-center justify-center";
+    div.style.background = "rgba(0,0,0,.7)";
+    div.innerHTML = `
+      <div class="bg-white rounded-2xl shadow-2xl w-[95vw] max-w-6xl h-[90vh] relative p-4 flex flex-col">
+        <button type="button" id="btnClosePreview"
+                class="absolute top-3 right-3 z-10 bg-white border rounded-full w-10 h-10 text-xl font-bold hover:bg-slate-50">
+          ×
+        </button>
+        <div id="previewContent" class="flex-1 min-h-0 flex items-center justify-center overflow-auto"></div>
+      </div>
+    `;
+    document.body.appendChild(div);
+
+    $("btnClosePreview").addEventListener("click", closePreviewModal);
+    div.addEventListener("click", (ev) => {
+      if (ev.target === div) closePreviewModal();
+    });
+  }
+
+  function closePreviewModal() {
+    const modal = $("previewModal");
+    const content = $("previewContent");
+    if (!modal || !content) return;
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    content.innerHTML = "";
+  }
+
+  window.previewDocFile = function(id, index) {
+    ensurePreviewModal();
+
+    const arquivos = DOC_FILES[id] || [];
+    const file = arquivos[index];
+    if (!file) return;
+
+    const content = $("previewContent");
+    const modal = $("previewModal");
+
+    let url = "";
+    if (!DOC_OBJECT_URLS[id]) DOC_OBJECT_URLS[id] = {};
+    if (!DOC_OBJECT_URLS[id][index]) {
+      DOC_OBJECT_URLS[id][index] = URL.createObjectURL(file);
+    }
+    url = DOC_OBJECT_URLS[id][index];
+
+    content.innerHTML = "";
+
+    if (file.type.startsWith("image/")) {
+      content.innerHTML = `<img src="${url}" class="max-w-full max-h-full object-contain rounded-xl" />`;
+    } else if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+      content.innerHTML = `<iframe src="${url}" class="w-full h-full rounded-xl border"></iframe>`;
+    } else {
+      content.innerHTML = `
+        <div class="text-center">
+          <p class="font-bold text-slate-700 mb-2">${escapeHtml(file.name)}</p>
+          <p class="text-sm text-slate-500">Pré-visualização não disponível para esse tipo de arquivo.</p>
+        </div>
+      `;
+    }
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  };
+
+  function revokeDocUrls(id) {
+    if (!DOC_OBJECT_URLS[id]) return;
+    Object.values(DOC_OBJECT_URLS[id]).forEach((u) => {
+      try { URL.revokeObjectURL(u); } catch (e) {}
+    });
+    DOC_OBJECT_URLS[id] = {};
+  }
+
+  // ==========================================
+  // CHECKLIST DOM
+  // ==========================================
+  function initChecklistDOM() {
+    const container = $("checklistContainer");
+    container.innerHTML = "";
+    DOC_FILES = {};
+    DOC_OBJECT_URLS = {};
+
+    ALL_DOCS.forEach(doc => {
+      DOC_FILES[doc.id] = [];
+      DOC_OBJECT_URLS[doc.id] = {};
+
+      const row = document.createElement("div");
+      row.className = "flex-col gap-2 p-3 border border-gray-200 rounded-xl bg-gray-50 transition-colors hidden";
+      row.id = `row_${doc.id}`;
+
+      row.innerHTML = `
+        <div class="flex items-start gap-3">
+          <div class="icon-wrapper mt-0.5">
+            <span id="icon_pendent_${doc.id}" class="icon-pendent text-gray-400 text-base">📄</span>
+            <span id="icon_done_${doc.id}" class="icon-done text-green-600 text-base">✅</span>
+          </div>
+          <span id="label_${doc.id}" class="check-label text-[13px] font-semibold text-gray-700 flex-1 leading-snug uppercase tracking-tight">${doc.label}</span>
+        </div>
+
+        <div class="pl-8 mt-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="cursor-pointer bg-[#0056b3] text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-[#0a2e5a] shadow-sm transition">
+              <span id="btn_text_${doc.id}">Adicionar arquivos</span>
+              <input
+                type="file"
+                id="${doc.id}"
+                name="${doc.id}"
+                form="formAbrir"
+                class="hidden doc-input"
+                accept="image/*,.pdf"
+                multiple
+                data-required="false"
+                onchange="handleFileSelect('${doc.id}')"
+              />
+            </label>
+
+            <span id="filename_${doc.id}" class="text-xs text-gray-500 italic font-medium">
+              Nenhum arquivo
+            </span>
+          </div>
+
+          <div id="filelist_${doc.id}" class="mt-3 space-y-2"></div>
+        </div>
+      `;
+
+      container.appendChild(row);
+    });
+  }
+
+  function renderFileList(id) {
+    const arquivos = DOC_FILES[id] || [];
+
+    const label = $("label_" + id);
+    const iconDone = $("icon_done_" + id);
+    const iconPendent = $("icon_pendent_" + id);
+    const filename = $("filename_" + id);
+    const btnText = $("btn_text_" + id);
+    const row = $("row_" + id);
+    const list = $("filelist_" + id);
+
+    if (!label || !iconDone || !iconPendent || !filename || !btnText || !row || !list) return;
+
+    list.innerHTML = "";
+
+    if (arquivos.length > 0) {
+      label.classList.add("is-done");
+      iconDone.classList.add("is-done");
+      iconPendent.classList.add("is-done");
+      row.classList.replace("bg-gray-50", "bg-green-50");
+      row.classList.replace("border-gray-200", "border-green-200");
+      filename.textContent = `${arquivos.length} arquivo(s) anexado(s)`;
+      filename.classList.replace("text-gray-500", "text-green-700");
+      btnText.textContent = "Adicionar mais";
+    } else {
+      label.classList.remove("is-done");
+      iconDone.classList.remove("is-done");
+      iconPendent.classList.remove("is-done");
+      row.classList.replace("bg-green-50", "bg-gray-50");
+      row.classList.replace("border-green-200", "border-gray-200");
+      filename.textContent = "Nenhum arquivo";
+      filename.classList.replace("text-green-700", "text-gray-500");
+      btnText.textContent = "Adicionar arquivos";
+      checkAllDocumentsAttached();
+      return;
+    }
+
+    arquivos.forEach((file, index) => {
+      let previewUrl = "";
+      if (!DOC_OBJECT_URLS[id]) DOC_OBJECT_URLS[id] = {};
+      if (!DOC_OBJECT_URLS[id][index] && file.type.startsWith("image/")) {
+        DOC_OBJECT_URLS[id][index] = URL.createObjectURL(file);
+      }
+      previewUrl = DOC_OBJECT_URLS[id][index] || "";
+
+      const isImage = file.type.startsWith("image/");
+      const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+
+      const item = document.createElement("div");
+      item.className = "flex items-center justify-between gap-3 p-2 rounded-lg border border-slate-200 bg-white";
+
+      item.innerHTML = `
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-bold text-slate-700 truncate">${escapeHtml(file.name)}</span>
+            <span class="text-[11px] text-slate-500">${formatBytes(file.size)}</span>
+          </div>
+
+          <div class="mt-1 flex gap-2 flex-wrap">
+            <button type="button"
+                    class="text-xs px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 font-semibold"
+                    onclick="previewDocFile('${id}', ${index})">
+              Visualizar
+            </button>
+
+            <label class="text-xs px-2 py-1 rounded bg-amber-50 hover:bg-amber-100 text-amber-700 font-semibold cursor-pointer">
+              Substituir
+              <input type="file"
+                    class="hidden"
+                    accept="image/*,.pdf"
+                    onchange="replaceDocFile('${id}', ${index}, this)">
+            </label>
+
+            <button type="button"
+                    class="text-xs px-2 py-1 rounded bg-red-50 hover:bg-red-100 text-red-700 font-semibold"
+                    onclick="removeDocFile('${id}', ${index})">
+              Remover
+            </button>
+          </div>
+        </div>
+
+        <div class="shrink-0">
+          ${
+            isImage && previewUrl
+              ? `<img src="${previewUrl}" class="w-14 h-14 object-cover rounded border" />`
+              : isPdf
+                ? `<div class="w-14 h-14 rounded border bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-600">PDF</div>`
+                : `<div class="w-14 h-14 rounded border bg-slate-50 flex items-center justify-center text-xs font-bold text-slate-600">ARQ</div>`
+          }
+        </div>
+      `;
+
+      list.appendChild(item);
+    });
+
+    checkAllDocumentsAttached();
+  }
+
+  window.handleFileSelect = function(id) {
+    const input = $(id);
+    if (!input) return;
+
+    const novosArquivos = Array.from(input.files || []);
+    if (!novosArquivos.length) return;
+
+    if (!DOC_FILES[id]) DOC_FILES[id] = [];
+
+    DOC_FILES[id].push(...novosArquivos);
+    input.value = "";
+
+    renderFileList(id);
+  };
+
+  window.removeDocFile = function(id, index) {
+    if (!DOC_FILES[id]) return;
+
+    const removed = DOC_FILES[id][index];
+    DOC_FILES[id].splice(index, 1);
+
+    if (DOC_OBJECT_URLS[id] && DOC_OBJECT_URLS[id][index]) {
+      try { URL.revokeObjectURL(DOC_OBJECT_URLS[id][index]); } catch (e) {}
+    }
+
+    DOC_OBJECT_URLS[id] = {};
+    renderFileList(id);
+  };
+
+  window.replaceDocFile = function(id, index, inputEl) {
+    const novosArquivos = Array.from(inputEl.files || []);
+    if (!novosArquivos.length) return;
+
+    if (!DOC_FILES[id]) DOC_FILES[id] = [];
+
+    DOC_FILES[id][index] = novosArquivos[0];
+
+    if (DOC_OBJECT_URLS[id] && DOC_OBJECT_URLS[id][index]) {
+      try { URL.revokeObjectURL(DOC_OBJECT_URLS[id][index]); } catch (e) {}
+    }
+    DOC_OBJECT_URLS[id] = {};
+
+    inputEl.value = "";
+    renderFileList(id);
+  };
+
+  function clearAllDocFiles() {
+    Object.keys(DOC_OBJECT_URLS).forEach(revokeDocUrls);
+    DOC_FILES = {};
+    DOC_OBJECT_URLS = {};
+  }
+
+  function checkAllDocumentsAttached() {
+    const inputs = document.querySelectorAll('.doc-input[data-required="true"]');
+    let allAttached = true;
+
+    inputs.forEach(input => {
+      const id = input.id;
+      const arquivos = DOC_FILES[id] || [];
+      if (arquivos.length === 0) allAttached = false;
+    });
+
+    const btn = $("btnConfirmarCriarVenda");
+    if (btn) btn.disabled = !allAttached;
+  }
+
+  function applyChecklistRules(formaPagamento, entradaForma, entradaPagaAParte = false) {
+    let requiredIds = [];
+
+    if (formaPagamento === "Cartao") {
+      requiredIds = ["doc_contrato", "doc_titular", "doc_residencia", "doc_pagamento", "doc_antifraude", "doc_selfie"];
+      if ($("label_doc_pagamento")) $("label_doc_pagamento").textContent = "COMPROVANTE DE PAGAMENTO";
+      if ($("label_doc_antifraude")) $("label_doc_antifraude").textContent = "CARTA ANTI-FRAUDE";
+      if (entradaPagaAParte) requiredIds.push("doc_pagamento_entrada");
+    } else if (formaPagamento === "Boleto") {
+      requiredIds = ["doc_contrato", "doc_titular", "doc_residencia", "doc_pagamento", "doc_selfie"];
+      if (entradaForma === "Cartao") requiredIds.push("doc_antifraude");
+      if ($("label_doc_pagamento")) $("label_doc_pagamento").textContent = "COMPROVANTE DE PAGAMENTO (PIX OU CARTÃO)";
+      if ($("label_doc_antifraude")) $("label_doc_antifraude").textContent = "CARTA ANTI-FRAUDE (OBRIGATÓRIA PARA CARTÃO DE CRÉDITO)";
+    }
+
+    if ($("label_doc_residencia")) {
+      $("label_doc_residencia").textContent =
+        "COMPROVANTE DE ENDEREÇO DE FATURAMENTO (MESMO ENDEREÇO DO CONTRATO/CCMEI — ATUALIZADO 3 MESES)";
+    }
+
+    if (ENTREGA_DIFERENTE) {
+      requiredIds.push("doc_endereco_entrega");
+    }
+
+    const cnpj = onlyDigits($("c_cnpj").value);
+    if (cnpj.length === 14 && formaPagamento !== "Pix") {
+      requiredIds.push("doc_cnpj");
+    }
+
+    if (CURRENT_REGISTRO && CURRENT_REGISTRO.equipamentos_resumo) {
+      const resumo = CURRENT_REGISTRO.equipamentos_resumo.toUpperCase();
+
+      const termosSerial = [
+        "SUPORTE",
+        "ATUALIZA",
+        "ATIVA",
+        "SFD VW",
+        "TOKEN",
+        "PLATINUM"
+      ];
+
+      const exigeSerial = termosSerial.some(termo => resumo.includes(termo));
+
+      if (exigeSerial) {
+        requiredIds.push("doc_serial");
+      }
+    }
+
+    ALL_DOCS.forEach(doc => {
+      const row = $(`row_${doc.id}`);
+      const input = $(doc.id);
+
+      if (!row || !input) return;
+
+      if (requiredIds.includes(doc.id)) {
+        row.classList.remove("hidden");
+        row.classList.add("flex");
+        input.setAttribute("data-required", "true");
+      } else {
+        row.classList.remove("flex");
+        row.classList.add("hidden");
+        input.setAttribute("data-required", "false");
+        input.value = "";
+
+        revokeDocUrls(doc.id);
+        DOC_FILES[doc.id] = [];
+        renderFileList(doc.id);
+      }
+    });
+
+    checkAllDocumentsAttached();
+  }
+
+  window.mudarFormaEntrada = function(val) {
+    applyChecklistRules("Boleto", val, false);
+  };
+
+  window.toggleEntradaCartao = function(isChecked) {
+    applyChecklistRules("Cartao", null, isChecked);
+  };
+
+  // ==========================================
+  // CLIENTE
+  // ==========================================
+  function setClienteDirty(isDirty, hintText) {
+    CLIENTE_DIRTY = !!isDirty;
+
+    const btn = $("btnSalvarCliente");
+    const hint = $("clienteHint");
+
+    if (!CURRENT_CLIENTE_ID) {
+      btn.style.display = "none";
+      hint.style.display = "none";
+      return;
+    }
+
+    if (CLIENTE_DIRTY) {
+      $("badgeCliente").textContent = `Cliente #${CURRENT_CLIENTE_ID} • Editando`;
+      btn.style.display = "inline-block";
+      btn.disabled = false;
+      hint.style.display = "inline-block";
+      hint.textContent = hintText || "Alterações não salvas.";
+      hint.style.color = "";
+    } else {
+      btn.style.display = "none";
+      if (hintText) {
+        hint.style.display = "inline-block";
+        hint.textContent = hintText;
+        hint.style.color = "#155724";
+        setTimeout(() => {
+          if (!CLIENTE_DIRTY) hint.style.display = "none";
+        }, 2500);
+      } else {
+        hint.style.display = "none";
+      }
+    }
+  }
+
+  function clientePayload() {
+    return {
+      nome: $("c_nome").value,
+      profissao: $("c_profissao").value,
+      email: $("c_email").value,
+      telefone: $("c_telefone").value,
+      cpf: $("c_cpf").value,
+      cnpj: $("c_cnpj").value,
+      inscricao_estadual: $("c_ie").value,
+      endereco: $("c_endereco").value,
+      numero: $("c_numero").value,
+      complemento: $("c_complemento").value,
+      bairro: $("c_bairro").value,
+      cidade: $("c_cidade").value,
+      uf: $("c_uf").value,
+      cep: $("c_cep").value,
+      observacoes: $("c_observacoes").value,
+    };
+  }
+
+  function toggleIE() {
+    const cnpj = onlyDigits($("c_cnpj").value);
+    const wrap = $("wrap_ie");
+    if (cnpj.length === 14) wrap.style.display = "block";
+    else {
+      wrap.style.display = "none";
+      $("c_ie").value = "";
+    }
+  }
+
+  async function buscarDadosCnpj(cnpj) {
+    setStatus("Consultando CNPJ na base de dados (CNPJA)...", "info");
+
+    try {
+      const res = await fetch(`https://open.cnpja.com/office/${cnpj}`);
+      const data = await res.json();
+
+      console.log("📦 DADOS BRUTOS DA NOVA API (CNPJA):", data);
+
+      if (!res.ok) {
+        setStatus("CNPJ não encontrado na base de dados.", "warn");
+        return;
+      }
+
+      const razao = data.company?.name || "";
+      const fantasia = data.alias || "";
+      const nomeEmpresa = fantasia || razao;
+
+      if (!$("c_nome").value || $("c_nome").value.toLowerCase() === "cliente sem nome") {
+        $("c_nome").value = nomeEmpresa;
+      }
+
+      const emails = data.emails || [];
+      if (!$("c_email").value && emails.length > 0) {
+        $("c_email").value = (emails[0].address || "").toLowerCase();
+      }
+
+      const phones = data.phones || [];
+      if (!$("c_telefone").value && phones.length > 0) {
+        const p = phones[0];
+        $("c_telefone").value = `(${p.area}) ${p.number}`;
+      }
+
+      $("c_numero").value = data.address?.number || "";
+      $("c_complemento").value = data.address?.details || "";
+
+      const cepLimpo = (data.address?.zip || "").replace(/\D/g, "");
+      if (cepLimpo.length === 8) {
+        $("c_cep").value = cepLimpo;
+        setStatus("CNPJ OK! Padronizando endereço via Correios (ViaCEP)...", "info");
+        await localizarCep();
+      } else {
+        $("c_endereco").value = data.address?.street || "";
+        $("c_bairro").value = data.address?.district || "";
+        $("c_cidade").value = data.address?.city || "";
+        $("c_uf").value = data.address?.state || "";
+
+        if (CURRENT_CLIENTE_ID) {
+          setStatus("Salvando dados do CNPJ no banco de dados...", "info");
+          await salvarCliente();
+        } else {
+          setStatus("✅ Dados do CNPJ preenchidos (sem CEP).", "success");
+        }
+      }
+    } catch (e) {
+      setStatus("Falha ao consultar CNPJ. Verifique sua conexão.", "error");
+      console.error("Erro na API de CNPJ:", e);
+    }
+  }
+
+  async function salvarCliente() {
+    if (!CURRENT_CLIENTE_ID) {
+      setStatus("Nenhum cliente carregado para salvar.", "warn");
+      return;
+    }
+
+    const btn = $("btnSalvarCliente");
+    const oldText = btn.textContent;
+
+    try {
+      btn.disabled = true;
+      btn.textContent = "Salvando…";
+      $("clienteHint").style.display = "inline-block";
+      $("clienteHint").textContent = "Salvando dados do cliente…";
+      $("clienteHint").style.color = "";
+
+      const res = await fetch(`/pedido/api/cliente/${CURRENT_CLIENTE_ID}/salvar/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRFToken": getCookie("csrftoken") || "",
+        },
+        body: JSON.stringify(clientePayload()),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.ok) {
+        setStatus(data.message || "Erro ao salvar cliente.", "error");
+        $("clienteHint").style.display = "inline-block";
+        $("clienteHint").textContent = data.message || "Erro ao salvar.";
+        $("clienteHint").style.color = "#cc0000";
+        return;
+      }
+
+      if (data.cliente) {
+        fillCliente(data.cliente);
+        CLIENTE_ENDERECOS = Array.isArray(data.enderecos) ? data.enderecos : [];
+        setEntregaMesmo(true);
+        clearEntregaNovoForm();
+        renderEnderecosSelect();
+        if (!CLIENTE_ENDERECOS.length) await carregarEnderecosCliente(CURRENT_CLIENTE_ID);
+      }
+
+      setStatus("✅ Cliente salvo com sucesso.", "success");
+      setClienteDirty(false, "✅ Salvo com sucesso!");
+      $("badgeCliente").textContent = `Cliente #${CURRENT_CLIENTE_ID} • Salvo`;
+    } catch (e) {
+      setStatus("Falha ao salvar cliente. Verifique console/network.", "error");
+      $("clienteHint").style.display = "inline-block";
+      $("clienteHint").textContent = "Falha ao salvar (network).";
+      $("clienteHint").style.color = "#cc0000";
+    } finally {
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
+  }
+
+  function clearCliente() {
+    ["c_nome","c_profissao","c_email","c_telefone","c_cpf","c_cnpj","c_ie","c_endereco","c_numero","c_complemento","c_bairro","c_cidade","c_uf","c_cep","c_observacoes"]
+      .forEach(id => $(id).value = "");
+    $("wrap_ie").style.display = "none";
+    $("badgeCliente").textContent = "—";
+    $("chipCliente").textContent = "Cliente: —";
+    CURRENT_CLIENTE_ID = null;
+    CLIENTE_ENDERECOS = [];
+    setEntregaMesmo(true);
+    renderEnderecosSelect();
+    setClienteDirty(false);
+  }
+
+  function fillCliente(c) {
+    CURRENT_CLIENTE_ID = c.id || null;
+
+    $("c_nome").value = c.nome || "";
+    const profRaw = (c.profissao || "").toString().trim().toLowerCase();
+
+    const profMap = {
+      "mecanico": "Mecanico",
+      "mecânico": "Mecanico",
+      "chaveiro": "Chaveiro",
+    };
+
+    $("c_profissao").value = profMap[profRaw] || "";
+    $("c_email").value = c.email || "";
+    $("c_telefone").value = c.telefone || "";
+    $("c_cpf").value = c.cpf || "";
+    $("c_cnpj").value = c.cnpj || "";
+    $("c_endereco").value = c.endereco || "";
+    $("c_numero").value = c.numero || "";
+    $("c_complemento").value = c.complemento || "";
+    $("c_bairro").value = c.bairro || "";
+    $("c_cidade").value = c.cidade || "";
+    $("c_uf").value = c.uf || "";
+    $("c_cep").value = c.cep || "";
+    $("c_observacoes").value = c.observacoes || "";
+
+    $("badgeCliente").textContent = c.id ? `Cliente #${c.id}` : "Cliente";
+    $("chipCliente").textContent = c.id ? `Cliente: #${c.id}` : "Cliente: OK";
+    $("c_ie").value = c.inscricao_estadual || c.ie || "";
+    toggleIE();
+
+    setClienteDirty(false);
+
+    const cnpjLimpo = onlyDigits(c.cnpj);
+    const cepLimpo = onlyDigits(c.cep);
+
+    const faltaEndereco = cepLimpo.length < 8;
+    const faltaContato = !c.email || !c.telefone;
+
+    if (cnpjLimpo.length === 14 && (faltaEndereco || faltaContato)) {
+      if (window.CNPJ_VERIFICADO !== cnpjLimpo) {
+        window.CNPJ_VERIFICADO = cnpjLimpo;
+        setTimeout(() => buscarDadosCnpj(cnpjLimpo), 400);
+      }
+    }
+  }
+
+  // ==========================================
+  // ENTREGA
+  // ==========================================
+  function setEntregaMesmo(isSame) {
+    $("chkEntregaMesmo").checked = !!isSame;
+    if (isSame) $("cardEntrega").classList.add("hidden");
+    else $("cardEntrega").classList.remove("hidden");
+  }
+
+  function clearEntregaNovoForm() {
+    ["e_nome","e_endereco","e_numero","e_complemento","e_bairro","e_cidade","e_uf","e_cep"].forEach(id => {
+      const el = $(id);
+      if (el) el.value = "";
+    });
+    const chk = $("chkEntregaPadrao");
+    if (chk) chk.checked = false;
+  }
+
+  function renderEnderecosSelect() {
+    const sel = $("selEntregaEndereco");
+    if (!sel) return;
+
+    const cur = sel.value;
+
+    sel.innerHTML = `
+      <option value="">— Selecione —</option>
+      <option value="__new__">+ Novo endereço…</option>
+    `;
+
+    for (const e of (CLIENTE_ENDERECOS || [])) {
+      const nomeStr = (e.nome || "").toLowerCase();
+      if (
+        e.is_principal ||
+        e.principal ||
+        e.tipo === "principal" ||
+        e.tipo === "faturamento" ||
+        nomeStr.includes("principal") ||
+        nomeStr === "faturamento"
+      ) {
+        continue;
+      }
+
+      const opt = document.createElement("option");
+      opt.value = String(e.id);
+      const tag = e.is_padrao_entrega ? " (padrão)" : "";
+      opt.textContent = `${e.nome || "Endereço"}${tag} — ${e.formatado || ""}`.trim();
+      sel.appendChild(opt);
+    }
+
+    if (cur && Array.from(sel.options).some(o => o.value === cur)) sel.value = cur;
+    else sel.value = "";
+
+    onSelectEntregaEndereco();
+  }
+
+  function onSelectEntregaEndereco() {
+    const sel = $("selEntregaEndereco");
+    const v = sel.value;
+
+    $("entregaPreview").classList.add("hidden");
+    $("entregaNovoWrap").classList.add("hidden");
+
+    if (!v) return;
+
+    if (v === "__new__") {
+      $("entregaNovoWrap").classList.remove("hidden");
+      clearEntregaNovoForm();
+      return;
+    }
+
+    const e = (CLIENTE_ENDERECOS || []).find(x => String(x.id) === String(v));
+    if (!e) return;
+
+    $("chkEntregaPadrao").checked = !!e.is_padrao_entrega;
+    $("entregaPreview").textContent = e.formatado || "—";
+    $("entregaPreview").classList.remove("hidden");
+  }
+
+  async function carregarEnderecosCliente(clienteId) {
+    if (!clienteId) {
+      CLIENTE_ENDERECOS = [];
+      renderEnderecosSelect();
+      return;
+    }
+
+    if (Array.isArray(CLIENTE_ENDERECOS) && CLIENTE_ENDERECOS.length) {
+      renderEnderecosSelect();
+      return;
+    }
+
+    try {
+      const res = await fetch(`/pedido/api/cliente/${clienteId}/enderecos/`, { headers: { "Accept": "application/json" }});
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.ok) CLIENTE_ENDERECOS = Array.isArray(data.items) ? data.items : [];
+      else CLIENTE_ENDERECOS = [];
+    } catch (e) {
+      CLIENTE_ENDERECOS = [];
+    } finally {
+      renderEnderecosSelect();
+    }
+  }
+
+  function payloadNovoEnderecoEntrega() {
+    return {
+      nome: $("e_nome").value,
+      endereco: $("e_endereco").value,
+      numero: $("e_numero").value,
+      complemento: $("e_complemento").value,
+      bairro: $("e_bairro").value,
+      cidade: $("e_cidade").value,
+      uf: $("e_uf").value,
+      cep: $("e_cep").value,
+      is_padrao_entrega: $("chkEntregaPadrao").checked,
+    };
+  }
+
+  async function salvarNovoEnderecoEntrega() {
+    if (!CURRENT_CLIENTE_ID) {
+      setStatus("Carregue um cliente antes de salvar endereço.", "warn");
+      return;
+    }
+
+    const sel = $("selEntregaEndereco").value;
+    if (sel !== "__new__") {
+      setStatus("Selecione '+ Novo endereço…' para salvar um novo.", "warn");
+      return;
+    }
+
+    const btn = $("btnSalvarEnderecoEntrega");
+    const oldText = btn.textContent;
+
+    try {
+      btn.disabled = true;
+      btn.textContent = "Salvando…";
+
+      const res = await fetch(`/pedido/api/cliente/${CURRENT_CLIENTE_ID}/enderecos/salvar/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRFToken": getCookie("csrftoken") || "",
+        },
+        body: JSON.stringify(payloadNovoEnderecoEntrega()),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.ok) {
+        setStatus(data.message || "Erro ao salvar endereço.", "error");
+        return;
+      }
+
+      setStatus(data.message || "✅ Endereço salvo.", "success");
+
+      try {
+        const r2 = await fetch(`/pedido/api/cliente/${CURRENT_CLIENTE_ID}/enderecos/`, { headers: { "Accept": "application/json" }});
+        const d2 = await r2.json().catch(() => ({}));
+        CLIENTE_ENDERECOS = (r2.ok && d2.ok && Array.isArray(d2.items)) ? d2.items : [];
+      } catch (e) {}
+
+      renderEnderecosSelect();
+
+      const newId = data.endereco?.id;
+      if (newId) {
+        $("selEntregaEndereco").value = String(newId);
+        onSelectEntregaEndereco();
+      }
+
+      $("entregaNovoWrap").classList.add("hidden");
+    } catch (e) {
+      setStatus("Falha ao salvar endereço (network).", "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
+  }
+
+  // ==========================================
+  // REGISTRO / ORÇAMENTO
+  // ==========================================
+  function clearRegistro() {
+    $("badgeStatusVenda").style.display = "none";
+    $("r_nome_cliente").textContent = "—";
+    $("r_documento").textContent = "—";
+    $("r_forma_pagamento").textContent = "—";
+    $("r_parcelas").textContent = "—";
+    $("r_vendedor").textContent = "—";
+    $("r_criado_em").textContent = "—";
+    $("r_equipamentos").textContent = "—";
+    $("r_observacoes").textContent = "—";
+    $("badgeRegistro").textContent = "—";
+    $("r_link_pagamento").value = "—";
+
+    $("formAbrir").action = "#";
+    $("btnAbrir").disabled = true;
+
+    const sel = $("selectRegistro");
+    sel.innerHTML = `<option value="">— Nenhum selecionado —</option>`;
+
+    REGISTROS = [];
+    $("chipRegistros").textContent = "Orçamentos: —";
+  }
+
+  function fillRegistroDetails(r) {
+    $("r_nome_cliente").textContent = r.nome_cliente || "—";
+    $("r_documento").textContent = (r.tipo_documento && r.documento) ? `${r.tipo_documento}: ${r.documento}` : "—";
+    $("r_forma_pagamento").textContent = r.forma_pagamento || "—";
+    $("r_parcelas").textContent = (r.quantidade_parcelas !== null && r.quantidade_parcelas !== undefined) ? String(r.quantidade_parcelas) : "—";
+    $("r_vendedor").textContent = r.nome_vendedor || "—";
+    $("r_criado_em").textContent = r.criado_em ? new Date(r.criado_em).toLocaleString("pt-BR") : "—";
+    $("r_equipamentos").textContent = r.equipamentos_resumo || "—";
+    $("r_observacoes").textContent = r.observacoes || "—";
+    $("r_link_pagamento").value = r.link_pagamento || "—";
+
+    $("badgeRegistro").textContent = r.id ? `Registro #${r.id}` : "Registro";
+
+    if (r.id) {
+      $("formAbrir").action = `/pedido/abrir/${r.id}/`;
+      $("btnAbrir").disabled = false;
+      
+      // NOVO: Muda o texto do botão se for uma atualização
+      const oldVendaId = sessionStorage.getItem("vendaOriginalParaAlterar");
+      if (oldVendaId) {
+          $("btnAbrir").textContent = "Atualizar Cotação no Odoo";
+          $("btnAbrir").classList.replace("btn-open", "btn-primary"); // Muda a cor pra destacar
+      } else {
+          $("btnAbrir").textContent = "Criar venda";
+          $("btnAbrir").classList.replace("btn-primary", "btn-open");
+      }
+      const badgeStatus = $("badgeStatusVenda");
+      if (r.status_venda) {
+        let texto = r.status_venda;
+        let bgClass = "bg-[#eaf3ff] text-[#0b3d7a] border-[#cfe2ff]"; // Cor padrão azul claro
+
+        if (r.status_venda === "cotacao") { 
+          texto = "Cotação"; 
+          bgClass = "bg-blue-100 text-blue-800 border-blue-300"; 
+        } else if (r.status_venda === "aguardando_pagamento") { 
+          texto = "Aguardando Pagamento"; 
+          bgClass = "bg-amber-100 text-amber-800 border-amber-300"; // Fica amarelo 
+        } 
+
+        badgeStatus.textContent = texto;
+        badgeStatus.className = `badge ${bgClass}`;
+        badgeStatus.style.display = "inline-flex";
+      } else {
+        badgeStatus.style.display = "none";
+      }
+    } else {
+      $("formAbrir").action = "#";
+      $("btnAbrir").disabled = true;
+    }
+  }
+
+  function populateSelectRegistros(registros) {
+    const sel = $("selectRegistro");
+    sel.innerHTML = `<option value="">— Nenhum selecionado —</option>`;
+
+    for (const r of registros) {
+      const dt = r.criado_em ? new Date(r.criado_em).toLocaleString("pt-BR") : "sem data";
+      const parcelas = (r.quantidade_parcelas !== null && r.quantidade_parcelas !== undefined) ? `${r.quantidade_parcelas}x` : "";
+      const fp = r.forma_pagamento ? `— ${r.forma_pagamento}` : "";
+      const eq = r.equipamentos_resumo ? `— ${r.equipamentos_resumo}` : "";
+      const label = `#${r.id} — ${dt} ${fp} ${parcelas} ${eq}`.replace(/\s+/g, " ").trim();
+
+      const opt = document.createElement("option");
+      opt.value = String(r.id);
+      opt.textContent = label;
+      sel.appendChild(opt);
+    }
+
+    $("chipRegistros").textContent = `Orçamentos: ${registros.length}`;
+  }
+
+  function onSelectRegistro() {
+    const id = $("selectRegistro").value;
+    if (!id) {
+      $("badgeRegistro").textContent = "—";
+      $("formAbrir").action = "#";
+      $("btnAbrir").disabled = true;
+      $("r_nome_cliente").textContent = "—";
+      $("r_documento").textContent = "—";
+      $("r_forma_pagamento").textContent = "—";
+      $("r_parcelas").textContent = "—";
+      $("r_vendedor").textContent = "—";
+      $("r_criado_em").textContent = "—";
+      $("r_equipamentos").textContent = "—";
+      $("r_observacoes").textContent = "—";
+      return;
+    }
+
+    const r = REGISTROS.find(x => String(x.id) === String(id));
+    if (r) fillRegistroDetails(r);
+  }
+
+  async function doLookup() {
+    const q = $("query").value.trim();
+    if (!q) {
+      setStatus("Digite CPF/CNPJ ou nome para buscar.", "error");
+      clearCliente();
+      clearRegistro();
+      return;
+    }
+
+    setStatus("Buscando cliente e seus orçamentos...");
+    clearCliente();
+    clearRegistro();
+
+    try {
+      const res = await fetch(`/pedido/api/lookup/?query=${encodeURIComponent(q)}`, {
+        headers: { "Accept": "application/json" }
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setStatus(data.message || "Erro ao buscar.", "error");
+        return;
+      }
+
+      if (data.cliente) {
+        fillCliente(data.cliente);
+        CLIENTE_ENDERECOS = Array.isArray(data.enderecos) ? data.enderecos : [];
+        setEntregaMesmo(true);
+        clearEntregaNovoForm();
+        renderEnderecosSelect();
+        if (!CLIENTE_ENDERECOS.length) await carregarEnderecosCliente(CURRENT_CLIENTE_ID);
+      } else {
+        const digitosBusca = onlyDigits(q);
+        if (digitosBusca.length === 14) {
+          $("c_cnpj").value = digitosBusca;
+          setTimeout(() => buscarDadosCnpj(digitosBusca), 400);
+        }
+      }
+
+      const registros = Array.isArray(data.registros) ? data.registros : [];
+      REGISTROS = registros;
+      populateSelectRegistros(registros);
+
+      if (!data.cliente && registros.length === 0) {
+        setStatus("Nada encontrado para essa busca.", "warn");
+        return;
+      }
+
+      const parts = [];
+      if (data.meta?.found_cliente) parts.push("cliente OK");
+      parts.push(`orçamentos: ${registros.length}`);
+      setStatus(`Resultado: ${parts.join(" + ")}. Selecione um orçamento.`, "success");
+
+      if (registros.length === 1) {
+        $("selectRegistro").value = String(registros[0].id);
+        onSelectRegistro();
+      }
+    } catch (e) {
+      setStatus("Falha na requisição. Verifique console/network.", "error");
+    }
+  }
+
+  // ==========================================
+  // CEP
+  // ==========================================
+  async function localizarCep() {
+    const btn = $("btnBuscarCep");
+    const cep = onlyDigits($("c_cep").value);
+
+    if (cep.length !== 8) {
+      setStatus("Informe um CEP válido (8 dígitos).", "warn");
+      return;
+    }
+
+    const oldText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Buscando…";
+
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { headers: { "Accept": "application/json" }});
+      const data = await res.json();
+
+      if (!res.ok || data.erro) {
+        setStatus("CEP não encontrado.", "warn");
+        return;
+      }
+
+      $("c_endereco").value = `${data.logradouro || ""}`.trim();
+      $("c_bairro").value = data.bairro || "";
+      $("c_cidade").value = data.localidade || "";
+      $("c_uf").value = data.uf || "";
+
+      if (CURRENT_CLIENTE_ID) {
+        setStatus("Salvando endereço no banco de dados...", "info");
+        await salvarCliente();
+      } else {
+        setStatus("✅ Endereço preenchido pelo CEP.", "success");
+      }
+    } catch (e) {
+      setStatus("Falha ao consultar CEP. Verifique internet.", "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
+  }
+
+  async function localizarCepEntrega() {
+    const btn = $("btnBuscarCepEntrega");
+    const cep = onlyDigits($("e_cep").value);
+
+    if (cep.length !== 8) {
+      setStatus("Informe um CEP válido (8 dígitos) no endereço de entrega.", "warn");
+      return;
+    }
+
+    const oldText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Buscando…";
+
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`, { headers: { "Accept": "application/json" }});
+      const data = await res.json();
+
+      if (!res.ok || data.erro) {
+        setStatus("CEP de entrega não encontrado.", "warn");
+        return;
+      }
+
+      $("e_endereco").value = `${data.logradouro || ""}`.trim();
+      $("e_bairro").value = data.bairro || "";
+      $("e_cidade").value = data.localidade || "";
+      $("e_uf").value = data.uf || "";
+
+      setStatus("✅ Endereço de entrega preenchido pelo CEP.", "success");
+    } catch (e) {
+      setStatus("Falha ao consultar CEP (entrega).", "error");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
+  }
+
+  // ==========================================
+  // SIMULADOR
+  // ==========================================
+  function toPayloadFromRegistro(r, cliente) {
+    if (!r) return null;
+    const ejArr = normalizeEquipamentosJson(r.equipamentos_json);
+
+    const itens = ejArr.map(x => {
+      let ref = x.id ?? x.equipamento_id ?? x.equipamentoId ?? x.nome;
+      return {
+        id: ref ? String(ref) : null,
+        qtd: String(x.quantidade ?? x.qtd ?? 1)
+      };
+    }).filter(x => x.id);
+
+    return {
+      id: r.id,
+      nomeCliente: r.nome_cliente || (cliente?.nome || ""),
+      nomeVendedor: r.nome_vendedor || "",
+      documento: r.documento || "",
+      faturamento: (r.tipo_documento || "").toUpperCase(),
+      localizacao: r.localizacao || "OUTROS",
+      pagamento: r.forma_pagamento || "Boleto",
+      parcelas: r.quantidade_parcelas ?? 1,
+      observacao: r.observacoes || "",
+      equipamentos: itens,
+      entrada: num(r.entrada ?? 0),
+      desconto: num(r.desconto ?? 0),
+      frete: num(r.frete ?? 0),
+    };
+  }
+
+  function openSimuladorWithRegistro(r, cliente) {
+    const payloadObj = toPayloadFromRegistro(r, cliente);
+    if (!payloadObj) return;
+
+    const payload = btoa(encodeURIComponent(JSON.stringify(payloadObj)));
+    const url = `/simulador?payload=${encodeURIComponent(payload)}`;
+    window.location.href = url;
+  }
+
+  // ==========================================
+  // CRIAR VENDA
+  // ==========================================
+async function submitCriarVendaComArquivos() {
+    const btn = $("btnConfirmarCriarVenda");
+    const oldText = btn.textContent;
+
+    try {
+      btn.disabled = true;
+      btn.textContent = "Criando Venda no Odoo...";
+
+      const form = $("formAbrir");
+      const action = form.action;
+
+      if (!action || action === "#") {
+        setStatus("Selecione um orçamento antes de criar a venda.", "warn");
+        btn.disabled = false;
+        btn.textContent = oldText;
+        return;
+      }
+
+      const formData = new FormData(form);
+
+      // NOVO: Resgatar o ID da venda antiga e mandar pro Python atualizar a cotação
+      const oldVendaId = sessionStorage.getItem("vendaOriginalParaAlterar");
+      if (oldVendaId) {
+        formData.append("old_venda_id", oldVendaId);
+        // APAGUE o sessionStorage.removeItem daqui!
+      }
+
+      Object.entries(DOC_FILES).forEach(([docId, arquivos]) => {
+        (arquivos || []).forEach(file => {
+          formData.append(docId, file);
+        });
+      });
+
+      const res = await fetch(action, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCookie("csrftoken") || "",
+          "X-Requested-With": "XMLHttpRequest",
+          "Accept": "application/json",
+        },
+        body: formData,
+      });
+
+      const contentType = res.headers.get("content-type") || "";
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        console.error("Erro ao criar venda:", txt);
+        setStatus("Erro ao criar venda.", "error");
+        btn.disabled = false;
+        btn.textContent = oldText;
+        return;
+      }
+
+      if (contentType.includes("application/json")) {
+        const data = await res.json().catch(() => ({}));
+
+        console.log("RESPOSTA:", data); // debug
+
+        if (!data.ok) {
+          setStatus(data.message || "Erro ao criar venda.", "error");
+          btn.disabled = false;
+          btn.textContent = oldText;
+          return;
+        }
+
+        const msg =
+          data.message ||
+          (data.odoo_feedback?.parcelas_message) ||
+          (data.odoo_sale_order_id
+            ? `✅ Venda criada no Odoo. Pedido #${data.odoo_sale_order_id}.`
+            : "✅ Venda criada no Odoo com sucesso.");
+
+        $("modalChecklist").classList.add("hidden");
+        clearAllDocFiles();
+        initChecklistDOM();
+
+        sessionStorage.removeItem("vendaOriginalParaAlterar");
+
+        // 🔥 AQUI DENTRO
+        if (data.link_pagamento) {
+          mostrarLinkPagamento(data.link_pagamento);
+          btn.disabled = false;
+          btn.textContent = oldText;
+          return;
+        }
+
+        if (data.redirect_url) {
+          window.location.href = data.redirect_url;
+          return;
+        }
+
+        if (data.url) {
+          window.location.href = data.url;
+          return;
+        }
+
+        setStatus(msg, "success");
+
+        btn.disabled = false;
+        btn.textContent = oldText;
+        return;
+      }
+
+      if (res.redirected) {
+        window.location.href = res.url;
+        return;
+      }
+
+      const text = await res.text();
+      document.open();
+      document.write(text);
+      document.close();
+
+    } catch (e) {
+      console.error(e);
+      alert("Falha ao criar venda.");
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
+  }
+
+  async function testarClienteNoOdoo() {
+    if (!CURRENT_CLIENTE_ID) {
+      alert("Carregue um cliente primeiro (precisa ter Cliente ID).");
+      return;
+    }
+
+    const cpfStr = onlyDigits($("c_cpf").value);
+    const cnpjStr = onlyDigits($("c_cnpj").value);
+    const docParaEnviar = (cnpjStr.length === 14) ? cnpjStr : cpfStr;
+
+    try {
+      const res = await fetch("/pedido/api/odoo/testar-cliente/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRFToken": getCookie("csrftoken") || "",
+        },
+        body: JSON.stringify({
+          cliente_id: CURRENT_CLIENTE_ID,
+          doc: docParaEnviar
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.ok) {
+        setStatus(data.message || "Erro ao testar cliente no Odoo.", "error");
+        console.log(data);
+        return;
+      }
+
+      if (data.found) {
+        alert(`Cliente achado no Odoo, ID: ${data.partner_id}`);
+        console.log(`Cliente achado no Odoo, ID: ${data.partner_id}`);
+      } else {
+        alert("Cliente não encontrado no Odoo.");
+        console.log("Cliente não encontrado no Odoo.");
+      }
+
+      $("modalChecklist").classList.add("hidden");
+    } catch (e) {
+      alert("Falha de rede ao consultar Odoo. Veja console.");
+      console.error(e);
+    }
+  }
+
+  // ==========================================
+  // EVENTOS
+  // ==========================================
+  $("btnCopiarResumoLink")?.addEventListener("click", async () => {
+    const link = $("r_link_pagamento").value || "";
+    if (!link || link === "—") {
+      setStatus("Esse orçamento ainda não possui link de pagamento.", "warn");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(link);
+      setStatus("Link de pagamento copiado.", "success");
+    } catch (e) {
+      setStatus("Não foi possível copiar o link.", "error");
+    }
+  });
+
+  $("btnAbrirResumoLink")?.addEventListener("click", () => {
+    const link = $("r_link_pagamento").value || "";
+    if (!link || link === "—") {
+      setStatus("Esse orçamento ainda não possui link de pagamento.", "warn");
+      return;
+    }
+    window.open(link, "_blank");
+  });
+
+  $("btnBuscar").addEventListener("click", () => {
+    doLookup();
+  });
+
+  $("query").addEventListener("keydown", (ev) => {
+    if (ev.key === "Enter") {
+      ev.preventDefault();
+      doLookup();
+    }
+  });
+
+  $("selectRegistro").addEventListener("change", onSelectRegistro);
+
+  [
+    "c_nome","c_profissao","c_email","c_telefone","c_cpf","c_cnpj",
+    "c_endereco","c_numero","c_complemento","c_bairro","c_cidade","c_uf","c_cep","c_observacoes"
+  ].forEach(id => {
+    $(id).addEventListener("input", () => {
+      if (CURRENT_CLIENTE_ID) setClienteDirty(true);
+    });
+  });
+
+  $("c_cnpj").addEventListener("input", () => {
+    toggleIE();
+    if (CURRENT_CLIENTE_ID) setClienteDirty(true);
+
+    const cnpjDigitado = onlyDigits($("c_cnpj").value);
+    if (cnpjDigitado.length === 14) {
+      buscarDadosCnpj(cnpjDigitado);
+    }
+  });
+
+  $("btnBuscarCep").addEventListener("click", localizarCep);
+  $("btnBuscarCepEntrega")?.addEventListener("click", localizarCepEntrega);
+  $("btnSalvarCliente").addEventListener("click", salvarCliente);
+
+  $("chkEntregaMesmo").addEventListener("change", (ev) => {
+    const same = ev.target.checked;
+
+    ENTREGA_DIFERENTE = !same;
+
+    setEntregaMesmo(same);
+    if (!same) renderEnderecosSelect();
+  });
+
+  $("selEntregaEndereco").addEventListener("change", onSelectEntregaEndereco);
+  $("btnSalvarEnderecoEntrega").addEventListener("click", salvarNovoEnderecoEntrega);
+
+  $("btnAbrir").addEventListener("click", () => {
+    const id = $("selectRegistro").value;
+    if (!id) return;
+
+    const r = REGISTROS.find(x => String(x.id) === String(id));
+    if (!r) return;
+
+    CURRENT_REGISTRO = r;
+
+    const formaPagamento = r.forma_pagamento || "Boleto";
+
+    initChecklistDOM();
+
+    ENTREGA_DIFERENTE = !$("chkEntregaMesmo").checked;
+
+    if (formaPagamento === "Boleto") {
+    const valorEntrada = Number(r.entrada || 0);
+    const temEntrada = valorEntrada > 0;
+
+    if (temEntrada) {
+      $("containerEntradaBoleto").classList.remove("hidden");
+      document.querySelector('input[name="forma_entrada"][value="Pix"]').checked = true;
+      applyChecklistRules("Boleto", "Pix", false);
+    } else {
+      $("containerEntradaBoleto").classList.add("hidden");
+      applyChecklistRules("Boleto", null, false);
+    }
+
+    $("containerEntradaCartao").classList.add("hidden");
+
+  } else if (formaPagamento === "Cartao") {
+      $("containerEntradaBoleto").classList.add("hidden");
+      //$("containerEntradaCartao").classList.remove("hidden");
+
+      const valorEntrada = Number(r.entrada || 0);
+      const temEntradaAParte = valorEntrada > 0;
+
+      $("checkEntradaAparte").checked = temEntradaAParte;
+
+      applyChecklistRules("Cartao", null, temEntradaAParte);
+    } else {
+      $("containerEntradaBoleto").classList.add("hidden");
+      $("containerEntradaCartao").classList.add("hidden");
+      applyChecklistRules(formaPagamento, null, false);
+    }
+
+    $("modalChecklist").classList.remove("hidden");
+  });
+
+  $("btnCloseModal").addEventListener("click", () => {
+    $("modalChecklist").classList.add("hidden");
+  });
+
+  $("btnCancelModal").addEventListener("click", () => {
+    $("modalChecklist").classList.add("hidden");
+  });
+
+  $("btnAbrirSimulador").addEventListener("click", () => {
+    const id = $("selectRegistro").value;
+    if (!id) {
+      setStatus("Selecione um orçamento para abrir no simulador.", "warn");
+      return;
+    }
+    const r = REGISTROS.find(x => String(x.id) === String(id));
+    if (!r) {
+      setStatus("Não achei o orçamento selecionado.", "error");
+      return;
+    }
+
+    // NOVO: Lembrar qual era a venda antes de ir pro simulador
+    if (r.venda_id) {
+      sessionStorage.setItem("vendaOriginalParaAlterar", r.venda_id);
+    }
+
+    openSimuladorWithRegistro(r, null);
+  });
+
+  $("btnConfirmarCriarVenda").addEventListener("click", submitCriarVendaComArquivos);
+
+  // ==========================================
+  // AUTO-CARREGAMENTO AO VOLTAR DO SIMULADOR
+  // ==========================================
+  window.addEventListener("DOMContentLoaded", async () => {
+    ensurePreviewModal();
+    setStatus("Digite CPF/CNPJ/Nome e clique em Buscar.");
+
+    const payloadStr = sessionStorage.getItem("voltarParaPedido");
+
+    if (payloadStr) {
+      sessionStorage.removeItem("voltarParaPedido");
+      try {
+        const payload = JSON.parse(payloadStr);
+        const q = payload.q;
+        const registroId = payload.registroId;
+
+        if (q) {
+          $("query").value = q;
+          await doLookup();
+
+          if (registroId) {
+            const sel = $("selectRegistro");
+            const optionExists = Array.from(sel.options).some(opt => String(opt.value) === String(registroId));
+            if (optionExists) {
+              sel.value = String(registroId);
+              onSelectRegistro();
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao ler o payload", e);
+      }
+    }
+  });
+
+  window.addEventListener("beforeunload", () => {
+    Object.keys(DOC_OBJECT_URLS).forEach(revokeDocUrls);
+  });
+</script>
+
+<div id="modalPagamento"
+     class="fixed inset-0 bg-black/60 flex items-center justify-center hidden z-[10000]">
+
+  <div class="bg-white p-6 rounded-2xl w-[520px] shadow-xl">
+
+    <h2 class="text-xl font-black mb-4">
+      🔗 Link de pagamento
+    </h2>
+
+    <input id="linkPagamento"
+           class="w-full border rounded-lg p-3 mb-4"
+           readonly>
+
+    <div class="flex gap-3 justify-end">
+
+      <button onclick="copiarLink()"
+              class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold">
+        Copiar
+      </button>
+
+      <button onclick="abrirLink()"
+              class="bg-green-600 text-white px-4 py-2 rounded-lg font-bold">
+        Abrir
+      </button>
+
+      <button onclick="fecharModal()"
+              class="bg-gray-300 px-4 py-2 rounded-lg font-bold">
+        Fechar
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function mostrarLinkPagamento(link){
+  const modal = document.getElementById("modalPagamento");
+  document.getElementById("linkPagamento").value = link;
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function fecharModal(){
+  const modal = document.getElementById("modalPagamento");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+function copiarLink(){
+
+  const input = document.getElementById("linkPagamento");
+
+  input.select();
+  document.execCommand("copy");
+
+}
+
+function abrirLink(){
+
+  const link = document.getElementById("linkPagamento").value;
+
+  window.open(link, "_blank");
+
+}
+
+function fecharModal(){
+
+  document
+    .getElementById("modalPagamento")
+    .classList.add("hidden");
+
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,440 @@
+{% extends 'form/base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Formulário de Filtros (mantém os valores preenchidos) -->
+    <form method="get" class="mb-4 border p-3 rounded">
+        <div class="row g-3">
+            <form method="get" class="row g-3">
+    <!-- Campo País -->
+    <div class="col-md-4">
+        <label for="id_pais">País</label>
+        <input type="text" id="id_pais" name="pais" 
+               class="form-control" list="paisesList"
+               placeholder="Digite o país">
+        <datalist id="paisesList">
+            <!-- Opções serão preenchidas via AJAX -->
+        </datalist>
+    </div>
+
+    <!-- Campo Marca -->
+    <div class="col-md-4">
+        <label for="id_brand">Marca</label>
+        <input type="text" id="id_brand" name="brand" 
+               class="form-control" list="marcasList"
+               placeholder="Digite a marca">
+        <datalist id="marcasList">
+            <!-- Opções serão preenchidas via AJAX -->
+        </datalist>
+    </div>
+
+    <!-- Campo Modelo -->
+    <div class="col-md-4">
+        <label for="id_modelo">Modelo</label>
+        <input type="text" id="id_modelo" name="modelo" 
+               class="form-control" list="modelosList"
+               placeholder="Digite o modelo" disabled>
+        <datalist id="modelosList">
+            <!-- Opções serão preenchidas via AJAX -->
+        </datalist>
+    </div>
+    <div class="col-md-4">
+        <label for="id_ano">Ano</label>
+        <input type="text" id="id_ano" name="ano" 
+               class="form-control" list="anosList"
+               placeholder="Digite o ano" disabled>
+        <datalist id="anosList">
+            <!-- Opções serão preenchidas via AJAX -->
+        </datalist>
+    </div>
+</form>
+            
+            <!-- Botões -->
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> Aplicar Filtros
+                </button>
+                <a href="{% url 'index_form' %}" class="btn btn-secondary">
+                    <i class="fas fa-undo"></i> Limpar
+                </a>
+            </div>
+            
+            <!-- Controle de Itens por Página -->
+            <div class="col-12 mt-3 d-flex align-items-center">
+                <label class="me-2 fw-bold small text-muted text-uppercase">Itens por página:</label>
+                <select name="per_page" class="form-select form-select-sm w-auto shadow-sm" onchange="this.form.submit()">
+                    <option value="5" {% if filtros.per_page == '5' %}selected{% endif %}>5</option>
+                    <option value="10" {% if filtros.per_page == '10' or not filtros.per_page %}selected{% endif %}>10</option>
+                    <option value="20" {% if filtros.per_page == '20' %}selected{% endif %}>20</option>
+                    <option value="40" {% if filtros.per_page == '40' %}selected{% endif %}>40</option>
+                    <option value="todos" {% if filtros.per_page == 'todos' %}selected{% endif %}>Todos</option>
+                </select>
+            </div>
+        </div>
+    </form>
+    <div class="legends">
+        <span class="checks checksBENCH">
+            <input type="checkbox" disabled class="square" checked> 
+            <p>Suporte on-bench</p>
+        </span>
+        <span class="checks checksOBD">
+            <input type="checkbox" disabled class="circle" checked>
+            <p>Suporte OBD</p>
+        </span>
+    </div>
+    <!-- Tabela de Resultados -->
+    <div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>País</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Ano</th>
+                <th>Sistema</th>
+                <th>Add Key</th>
+                <th>Key Lost</th>
+                <th>Read Pass</th>
+                <th>Remote Learn</th>
+                <th>Tipo Chave</th>
+                <th>Freq</th>
+                <th>Transponder</th>
+                <th>IMMO</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for veiculo in page_obj %}
+            <tr>
+                <td>{{ veiculo.pais|default:"-" }}</td>
+                <td>{{ veiculo.brand|default:"-" | upper}}</td>
+                {% include 'form/components/line.html' with veiculo_id=veiculo.id field_name='modelo' display=veiculo.modelo|default:'-'%}
+                {% include 'form/components/line.html' with veiculo_id=veiculo.id field_name='ano' display=veiculo.ano|default:'-'%}
+                {% include 'form/components/line.html' with veiculo_id=veiculo.id field_name='sistema' display=veiculo.sistema|default:'Not defined'%}
+                <!-- Checkboxes -->
+                {% include 'form/components/checkbox_line.html' with veiculo_id=veiculo.id field_name='add_key' display=veiculo.get_add_key_display%}
+                {% include 'form/components/checkbox_line.html' with veiculo_id=veiculo.id field_name='key_lost' display=veiculo.get_key_lost_display%}
+                {% include 'form/components/checkbox_line.html' with veiculo_id=veiculo.id field_name='read_password' display=veiculo.get_read_password_display%}
+                {% include 'form/components/checkbox_line.html' with veiculo_id=veiculo.id field_name='remote_learning' display=veiculo.get_remote_learning_display%}
+
+                <!-- Informações adicionais -->
+                {% include 'form/components/line.html' with veiculo_id=veiculo.id field_name='tipo_chave' display=veiculo.tipo_chave|default:'Not defined'%}
+                {% include 'form/components/select_line.html' with veiculo_id=veiculo.id field_name='frequencia' display=veiculo.get_frequencia_display|default:''%}
+                {% include 'form/components/line.html' with veiculo_id=veiculo.id field_name='transponder' display=veiculo.transponder|default:'Not defined'%}
+                {% include 'form/components/line.html' with veiculo_id=veiculo.id field_name='immo_part_replacement' display=veiculo.immo_part_replacement|default:'Not defined'%}
+
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="13" class="text-center py-4">
+                    <i class="fas fa-info-circle me-2"></i>Nenhum veículo encontrado
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+    <!-- Paginação -->
+    {% if filtros.per_page != 'todos' %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center shadow-sm">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% for key,value in filtros.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    &laquo; Primeira
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in filtros.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Anterior
+                </a>
+            </li>
+            {% endif %}
+
+            <li class="page-item disabled">
+                <span class="page-link fw-bold px-4">
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in filtros.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Próxima
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in filtros.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                    Última &raquo;
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    <a href="{% url 'cadastrar_veiculo' %}" class="btn btn-success">
+        <i class="fas fa-plus"></i> Novo Veículo
+    </a>
+    {% if is_super_or_gestor %}
+    <a href="{% url 'dashboard_edicoes' %}" class="btn btn-primary" style="background-color: #0056b3;">
+        <i class="fas fa-chart-line"></i> Dashboard de Edições
+    </a>
+    {% endif %}
+</div>
+{% block javascript %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Checkbox change handler
+    document.querySelector('.table').addEventListener('change', function(e) {
+        if (e.target.matches('input[type="checkbox"]')) {
+            const container = e.target.closest('div[data-id]');
+            const veiculoId = container.dataset.id;
+            const fieldName = container.dataset.field;
+            const checkboxType = e.target.className;
+            const checked = e.target.checked;
+            let values = container.dataset.values ? container.dataset.values.split(", ") : [];
+
+            function returnIndex(array, index) {
+                if(array.length <= 0 && index < 0) return 0;
+                else if(array.length > 0 && index < 0) return array.length;
+                else return index;
+            }
+
+            let newValue;
+            if (checkboxType === 'circle') {
+                let index = values.findIndex(value => value.includes("OBD"));
+                if(checked) {
+                    newValue = 'allOBD';
+                    values[returnIndex(values,index)] = newValue;
+                } else {
+                    newValue = 'partOBD';
+                    values[returnIndex(values,index)] = newValue;
+                }
+            } else if (checkboxType === 'square') {
+                let index = values.findIndex(value => value.includes("BENCH"));
+                if(checked) {
+                    newValue = 'allBENCH';
+                    values[returnIndex(values,index)] = newValue;
+                } else {
+                    newValue = 'partBENCH';
+                    values[returnIndex(values,index)] = newValue;
+                }
+            }
+
+            try {
+                values = values.join(', ');
+            } catch {
+                // values remains unchanged
+            }
+
+            // Using fetch instead of $.ajax
+            fetch('update-vehicle/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({
+                    'id': veiculoId,
+                    'field': fieldName,
+                    'value': values
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                container.setAttribute('data-values', data.new_display);
+                location.reload();
+            })
+            .catch(error => {
+                alert('Erro ao salvar: ' + error.message);
+                e.target.checked = !e.target.checked; // Revert the change
+            });
+        }
+    });
+
+    // Select change handler
+    document.querySelector('.table').addEventListener('change', function(e) {
+        if (e.target.matches('select')) {
+            const container = e.target.closest('div[data-id]');
+            const veiculoId = container.dataset.id;
+            const fieldName = container.dataset.field;
+
+            fetch('update-vehicle/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({
+                    'id': veiculoId,
+                    'field': fieldName,
+                    'value': e.target.value
+                })
+            });
+        }
+    });
+
+    // Input saving functionality
+    const typingTimer = {};
+    const doneTypingInterval = 300;
+    const inputs = document.querySelectorAll('.auto-save-input');
+
+    inputs.forEach(input => {
+        input.dataset.initialValue = input.value;
+
+        input.addEventListener('input', function() {
+            clearTimeout(typingTimer[input.id]);
+            
+            if(input.value !== input.dataset.initialValue) {
+                input.classList.add('pending-save');
+                typingTimer[input.id] = setTimeout(() => saveField(input), doneTypingInterval);
+            }
+        });
+
+        input.addEventListener('blur', function() {
+            clearTimeout(typingTimer[input.id]);
+            if(input.classList.contains('pending-save')) {
+                saveField(input);
+            }
+        });
+    });
+
+    function saveField(inputElement) {
+        const container = inputElement.closest('.editable-field-container');
+        const veiculoId = container.dataset.id;
+        const fieldName = container.dataset.field;
+        const newValue = inputElement.value;
+
+        fetch('update-field/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: new URLSearchParams({
+                id: veiculoId,
+                field: fieldName,
+                value: newValue
+            })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if(data.status === 'success') {
+                inputElement.classList.remove('pending-save', 'saving');
+                inputElement.dataset.initialValue = newValue;
+                
+                if(data.display_value) {
+                    inputElement.value = data.display_value;
+                    inputElement.placeholder = data.display_value;
+                    inputElement.dataset.initialValue = data.display_value;
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error.message);
+            inputElement.classList.remove('saving');
+            inputElement.classList.add('error');
+            setTimeout(() => inputElement.classList.remove('error'), 2000);
+            inputElement.value = inputElement.dataset.initialValue;
+        });
+    }
+
+    // Dynamic options functionality
+    const paisInput = document.getElementById('id_pais');
+    const marcaInput = document.getElementById('id_brand');
+    const modeloInput = document.getElementById('id_modelo');
+    const anoInput = document.getElementById('id_ano');
+    const paisesDatalist = document.getElementById('paisesList');
+    const marcaDatalist = document.getElementById('marcasList');
+    const modeloDatalist = document.getElementById('modelosList');
+    const anoDatalist = document.getElementById('anosList');
+
+    function atualizarOpcoes() {
+        const pais = paisInput.value;
+        const marca = marcaInput.value;
+        const modelo = modeloInput.value;
+
+        const params = new URLSearchParams();
+        if (pais) params.append('pais', pais);
+        if (marca) params.append('marca', marca);
+        if (modelo) params.append('modelo', modelo);
+
+        fetch(`get-opcoes/?${params.toString()}`)
+            .then(response => response.json())
+            .then(data => {
+                // Update country options
+                paisesDatalist.innerHTML = '';
+                // Adiciona verificação para garantir que data.paises é um array antes de iterar
+                // O nome da chave no JSON retornado é 'paises' (plural)
+                if (Array.isArray(data.paises)) {
+                    data.paises.forEach(pais => {
+                        const option = document.createElement('option');
+                        option.value = pais;
+                        paisesDatalist.appendChild(option);
+                    });
+                }
+
+                // Update brand options
+                marcaDatalist.innerHTML = '';
+                // Adiciona verificação para garantir que data.marcas é um array antes de iterar
+                if (Array.isArray(data.marcas)) {
+                    data.marcas.forEach(marca => {
+                        const option = document.createElement('option');
+                        option.value = marca;
+                        marcaDatalist.appendChild(option);
+                    });
+                }
+
+                // Update model options
+                modeloDatalist.innerHTML = '';
+                anoDatalist.innerHTML = '';
+                // Adiciona verificação para garantir que data.modelos é um array antes de iterar
+                if (Array.isArray(data.modelos)) {
+                    data.modelos.forEach(modelo => {
+                        const option = document.createElement('option');
+                        option.value = modelo;
+                        modeloDatalist.appendChild(option);
+                    });
+                }
+                // Adiciona verificação para garantir que data.anos é um array antes de iterar
+                if (Array.isArray(data.anos)) {
+                    data.anos.forEach(ano => {
+                        const option = document.createElement('option');
+                        option.value = ano;
+                        anoDatalist.appendChild(option);
+                    });
+                }
+
+                // Enable/disable fields
+                // Usa a verificação de array para evitar erro de .length em undefined
+                marcaInput.disabled = !(Array.isArray(data.marcas) && data.marcas.length);
+                modeloInput.disabled = !(Array.isArray(data.modelos) && data.modelos.length);
+                anoInput.disabled = !(Array.isArray(data.anos) && data.anos.length);
+            });
+    }
+
+    paisInput.addEventListener('input', function() {
+        marcaInput.value = '';
+        modeloInput.value = '';
+        anoInput.value = '';
+        atualizarOpcoes();
+    });
+
+    marcaInput.addEventListener('input', function() {
+        modeloInput.value = '';
+        anoInput.value = '';
+        atualizarOpcoes();
+    });
+
+    // Initial load
+    atualizarOpcoes();
+});
+</script>
+{% endblock %}
+{%endblock%}

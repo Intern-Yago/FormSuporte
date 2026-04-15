@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Pagamento Seguro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 text-slate-800">
+  <div class="min-h-screen py-8 px-4">
+    <div class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {% if three_ds_status == "success" %}
+        <div class="mb-4 rounded-lg bg-green-100 px-4 py-3 text-green-700">
+          {{ three_ds_message|default:"Pagamento confirmado com sucesso." }}
+        </div>
+      {% elif three_ds_status == "pending" %}
+        <div class="mb-4 rounded-lg bg-yellow-100 px-4 py-3 text-yellow-800">
+          {{ three_ds_message|default:"Autenticação concluída. Estamos confirmando o pagamento." }}
+        </div>
+      {% elif three_ds_status == "failure" %}
+        <div class="mb-4 rounded-lg bg-red-100 px-4 py-3 text-red-700">
+          A autenticação 3DS falhou ou o pagamento foi recusado.
+        </div>
+      {% endif %}
+      <section class="bg-white rounded-3xl shadow p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h1 class="text-2xl font-black">Pagamento seguro</h1>
+            <p class="text-sm text-slate-500 mt-1">Finalize seu pagamento com cartão de crédito.</p>
+          </div>
+          <div class="text-right">
+            <div class="text-xs text-slate-500">Venda</div>
+            <div class="text-lg font-black">#{{ venda.id }}</div>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-bold mb-1">Nome no cartão</label>
+            <input id="cardholder_name" class="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200" placeholder="Como está impresso no cartão">
+          </div>
+
+          <div>
+            <label class="block text-sm font-bold mb-1">Número do cartão</label>
+            <input id="card_number" maxlength="23" class="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200" placeholder="0000 0000 0000 0000">
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div>
+              <label class="block text-sm font-bold mb-1">Mês</label>
+              <input id="expiration_month" maxlength="2" class="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200" placeholder="12">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold mb-1">Ano</label>
+              <input id="expiration_year" maxlength="4" class="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200" placeholder="2028">
+            </div>
+
+            <div>
+              <label class="block text-sm font-bold mb-1">CVV</label>
+              <input id="security_code" maxlength="4" class="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200" placeholder="123">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-bold mb-1">Parcelas</label>
+            <select id="installments" class="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-blue-200">
+              {% with qtd=venda.quantidade_parcelas|default:1 %}
+                {% for i in "123456789012"|make_list %}
+                {% endfor %}
+              {% endwith %}
+            </select>
+          </div>
+
+          <button id="btnPagar" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-2xl py-4 font-black text-lg shadow">
+            Pagar agora
+          </button>
+
+          <div id="statusBox" class="hidden rounded-2xl p-4 text-sm font-bold"></div>
+        </div>
+      </section>
+
+      <aside class="bg-white rounded-3xl shadow p-6">
+        <h2 class="text-xl font-black mb-4">Resumo do pedido</h2>
+
+        <div class="space-y-3 text-sm">
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Cliente</span>
+            <span class="font-bold text-right">{{ venda.nome_cliente }}</span>
+          </div>
+
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Documento</span>
+            <span class="font-bold text-right">{{ venda.documento }}</span>
+          </div>
+
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Pagamento</span>
+            <span class="font-bold text-right">{{ venda.forma_pagamento }}</span>
+          </div>
+
+          <div class="flex justify-between gap-3">
+            <span class="text-slate-500">Parcelas previstas</span>
+            <span class="font-bold text-right">{{ venda.quantidade_parcelas|default:"1" }}x</span>
+          </div>
+        </div>
+
+        <hr class="my-5">
+
+        <div class="bg-slate-50 rounded-2xl p-4">
+          <p class="text-xs uppercase tracking-wide text-slate-500 font-bold mb-1">Segurança</p>
+          <p class="text-sm text-slate-700">
+            Seus dados serão enviados por conexão segura para processamento do pagamento.
+          </p>
+        </div>
+
+        <pre id="rawBox" class="mt-5 bg-slate-900 text-slate-100 rounded-2xl p-4 text-xs overflow-auto hidden"></pre>
+      </aside>
+    </div>
+  </div>
+
+<script>
+  const endpointPagar = "{{ link_pagar }}";
+  const btnPagar = document.getElementById("btnPagar");
+  const statusBox = document.getElementById("statusBox");
+  const rawBox = document.getElementById("rawBox");
+  const selInstallments = document.getElementById("installments");
+
+  const parcelasPadrao = Number("{{ venda.quantidade_parcelas|default:'1' }}") || 1;
+  for (let i = 1; i <= 12; i++) {
+    const opt = document.createElement("option");
+    opt.value = String(i);
+    opt.textContent = `${i}x`;
+    if (i === parcelasPadrao) opt.selected = true;
+    selInstallments.appendChild(opt);
+  }
+
+  function digits(v) {
+    return String(v || "").replace(/\D/g, "");
+  }
+
+  function showStatus(message, type = "info") {
+    statusBox.classList.remove(
+      "hidden",
+      "bg-red-100", "text-red-700",
+      "bg-green-100", "text-green-700",
+      "bg-blue-100", "text-blue-700"
+    );
+
+    if (type === "error") {
+      statusBox.classList.add("bg-red-100", "text-red-700");
+    } else if (type === "success") {
+      statusBox.classList.add("bg-green-100", "text-green-700");
+    } else {
+      statusBox.classList.add("bg-blue-100", "text-blue-700");
+    }
+
+    statusBox.textContent = message;
+  }
+
+  function getThreeDSData() {
+    return {
+      user_agent: navigator.userAgent || "",
+      color_depth: Number(window.screen?.colorDepth || 24),
+      java_enabled: typeof navigator.javaEnabled === "function" ? navigator.javaEnabled() : false,
+      language: navigator.language || "pt-BR",
+      screen_height: Number(window.screen?.height || 0),
+      screen_width: Number(window.screen?.width || 0),
+      time_zone_offset: String(new Date().getTimezoneOffset()),
+      device_type_3ds: "BROWSER",
+    };
+  }
+
+  document.getElementById("card_number").addEventListener("input", (e) => {
+    let v = digits(e.target.value).slice(0, 19);
+    v = v.replace(/(\d{4})(?=\d)/g, "$1 ");
+    e.target.value = v;
+  });
+
+  document.getElementById("expiration_month").addEventListener("input", (e) => {
+    e.target.value = digits(e.target.value).slice(0, 2);
+  });
+
+  document.getElementById("expiration_year").addEventListener("input", (e) => {
+    e.target.value = digits(e.target.value).slice(0, 4);
+  });
+
+  document.getElementById("security_code").addEventListener("input", (e) => {
+    e.target.value = digits(e.target.value).slice(0, 4);
+  });
+
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(";").shift();
+    return "";
+  }
+
+  btnPagar.addEventListener("click", async () => {
+    const payload = {
+      cardholder_name: document.getElementById("cardholder_name").value.trim(),
+      card_number: digits(document.getElementById("card_number").value),
+      expiration_month: digits(document.getElementById("expiration_month").value),
+      expiration_year: digits(document.getElementById("expiration_year").value),
+      security_code: digits(document.getElementById("security_code").value),
+      installments: Number(document.getElementById("installments").value || 1),
+      three_ds: getThreeDSData(),
+    };
+
+    if (
+      !payload.cardholder_name ||
+      !payload.card_number ||
+      !payload.expiration_month ||
+      !payload.expiration_year ||
+      !payload.security_code
+    ) {
+      showStatus("Preencha todos os campos do cartão.", "error");
+      return;
+    }
+
+    btnPagar.disabled = true;
+    btnPagar.textContent = "Processando pagamento...";
+    showStatus("Enviando pagamento para análise...", "info");
+
+    try {
+      const res = await fetch(endpointPagar, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRFToken": getCookie("csrftoken"),
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const text = await res.text();
+      let data = {};
+
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        data = {
+          ok: false,
+          message: text || `Erro HTTP ${res.status}`
+        };
+      }
+
+      rawBox.classList.remove("hidden");
+      rawBox.textContent = JSON.stringify(data, null, 2);
+
+      if (data.ok) {
+        if (data.is_3ds && data.url_3ds) {
+            // O Odoo exige 3DS! Redireciona o cliente para o banco.
+            showStatus(data.message || "Redirecionando para o app do seu banco...", "info");
+            window.location.href = data.url_3ds;
+        } else {
+            // Pagamento passou direto, sem desafio!
+            showStatus(data.message || "Pagamento aprovado com sucesso.", "success");
+        }
+      } else {
+        showStatus(data.message || "Pagamento não aprovado.", "error");
+      }
+    } catch (e) {
+      showStatus("Erro de conexão ao processar pagamento.", "error");
+      rawBox.classList.remove("hidden");
+      rawBox.textContent = String(e);
+    } finally {
+      btnPagar.disabled = false;
+      btnPagar.textContent = "Pagar agora";
+    }
+  });
+</script>
+</body>
+</html>

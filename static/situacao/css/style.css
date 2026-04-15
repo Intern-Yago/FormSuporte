@@ -1,0 +1,398 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+/* ==========================================================================
+   NOVO VISUAL DO PAINEL PRINCIPAL (BASEADO NA IMAGEM)
+   ========================================================================== */
+
+body {
+    background-color: #f4f6f9;
+    font-family: 'Inter', Arial, sans-serif;
+    color: #334155;
+    margin: 0; padding: 0;
+}
+
+.dash-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    margin-bottom: 40px;
+}
+
+/* Cabeçalho */
+.dash-header {
+    background-color: #1e5cba;
+    color: #ffffff;
+    padding: 24px 30px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.dash-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo-text-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.logo-text-main {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    line-height: 1;
+}
+
+.logo-text-sub {
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+.dash-title-group {
+    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    padding-left: 30px;
+}
+
+.dash-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+}
+
+.dash-subtitle {
+    font-size: 13px;
+    color: #cbd5e1;
+    margin: 0;
+}
+
+/* Corpo do painel */
+.dash-content {
+    padding: 30px;
+}
+
+/* Cards Genéricos */
+.dash-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.card-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 16px;
+    color: #475569;
+    margin-bottom: 20px;
+}
+
+/* Barra de Busca */
+.search-card {
+    padding: 20px 24px;
+}
+
+.search-input-group {
+    display: flex;
+    align-items: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.search-icon-wrapper {
+    padding: 0 15px;
+    display: flex;
+    align-items: center;
+    color: #64748b;
+}
+
+.search-input-group input {
+    flex-grow: 1;
+    border: none;
+    padding: 14px 0;
+    font-size: 15px;
+    color: #1e293b;
+    outline: none;
+    font-family: inherit;
+}
+
+.btn-buscar {
+    background-color: #1e5cba;
+    color: white;
+    border: none;
+    padding: 0 24px;
+    min-height: 100%;
+    align-self: stretch;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.btn-buscar:hover {
+    background-color: #164a99;
+}
+
+/* Grid de Dados e Status */
+.dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.data-card, .status-card {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Linhas de Dados do Cliente */
+.data-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.data-row:first-child {
+    padding-top: 0;
+}
+
+.data-label {
+    color: #64748b;
+    font-size: 14px;
+}
+
+.data-value {
+    color: #0f172a;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+/* Footer do Dados Cliente (Status Mini) */
+.data-status-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.mini-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Caixa Grande de Status */
+.large-status-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.large-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+}
+
+.large-text-group strong {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.large-text-group span {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.flex-spacer {
+    flex-grow: 1;
+}
+
+/* Status Colors (Mini e Large) */
+.badge-direito, .box-direito { background-color: #e8f5e9; color: #15803d; border: 1px solid #c8e6c9; }
+.badge-vencido, .box-vencido { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+.badge-vencendo, .box-vencendo { background-color: #fef9c3; color: #a16207; border: 1px solid #fef08a; }
+.badge-bloqueado, .box-bloqueado { background-color: #fee2e2; color: #991b1b; border: 2px solid #ef4444; }
+.sem-dados { background-color: #64748b; color: #f1f5f9; border: 1px solid #e2e8f0; }
+
+/* Botões do Status Card */
+.dash-action-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.dash-action-buttons button {
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.dash-btn-outline {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+}
+
+.dash-btn-outline:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+}
+
+.dash-btn-primary {
+    background: #1e5cba;
+    border: 1px solid #1e5cba;
+    color: #ffffff;
+}
+
+.dash-btn-primary:hover {
+    background: #164a99;
+}
+
+/* Responsividade do Painel Principal */
+@media (max-width: 768px) {
+    .dash-header { flex-direction: column; align-items: flex-start; gap: 15px; padding: 20px; }
+    .dash-title-group { border-left: none; padding-left: 0; }
+    .dash-grid { grid-template-columns: 1fr; }
+    .dash-action-buttons { flex-direction: column; }
+}
+
+/* Estilos de Tabelas mantidos com design mais limpo */
+.table-responsive { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; color: #334155; }
+.table th, .table td { padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+.table th { background-color: #f8fafc; font-weight: 600; color: #475569; }
+.table tbody tr:hover { background-color: #f1f5f9; }
+
+/* Status linha tabela */
+tr.vencido { background-color: #fee2e2; color: #b91c1c; }
+tr.direito { background-color: #e8f5e9; color: #15803d; }
+tr.vencendo { background-color: #fef9c3; color: #a16207; }
+
+@media (max-width: 768px) {
+    .table thead { display: none; }
+    .table tbody tr { display: block; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; padding: 10px; }
+    .table tbody td { display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding: 10px 5px; }
+    .table tbody td::before { content: attr(data-label); font-weight: 600; color: #64748b; }
+}
+
+/* Mensagens do rodapé (mantido do original) */
+.footer { margin-top: 15px; }
+.note { font-weight: 600; font-size: 14px; text-align: center; }
+.note-success { color: #0f7a28; }
+.note-error { color: #b30021; }
+
+
+/* ==========================================================================
+   ATENÇÃO: CÓDIGO ABAIXO REFERENTE AOS POPUPS MANTIDO INTACTO!
+   NÃO FOI FEITA NENHUMA ALTERAÇÃO COMO SOLICITADO.
+   ========================================================================== */
+
+/* Botão abrir (antigo caso seja usado em algum lugar) */
+.btn-popup {
+    background-color: #0055a5; color: #fff; padding: 12px 22px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: background 0.3s ease; display: block;
+}
+.btn-popup:hover { background-color: #003f7d; }
+
+/* Overlay */
+.popup-overlay { display: none; position: fixed; z-index: 999; inset: 0; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; backdrop-filter: blur(3px); }
+
+/* Conteúdo */
+.popup-content { background: linear-gradient(145deg, #ffffff, #f7fbff); border-radius: 16px; padding: 26px 26px 30px; width: min(540px, 94vw); box-shadow: 0 14px 40px rgba(0,0,0,0.25); position: relative; animation: fadeIn 0.25s ease; max-height: 90vh; overflow-y: auto; border: 1px solid #e5ecf4; }
+.popup-title { font-size: 1.4rem; font-weight: 700; color: #0055a5; margin-bottom: 18px; text-align: center; }
+
+/* Fechar */
+.close-btn { position: absolute; right: 14px; top: 10px; font-size: 24px; color: #888; cursor: pointer; }
+.close-btn:hover { color: #000; }
+
+/* Form */
+.popup-form .form-group { margin-bottom: 14px; display: flex; flex-direction: column; }
+.popup-form label { font-weight: 600; color: #333; margin-bottom: 6px; }
+.popup-form input[type="text"], .popup-form input[type="email"] { padding: 10px 12px; border: 1px solid #d6d6d6; border-radius: 8px; font-size: 0.95rem; transition: 0.2s; background: #fff; }
+.popup-form input:focus { border-color: #0055a5; box-shadow: 0 0 0 3px rgba(0,85,165,0.12); outline: none; }
+
+/* Botões */
+.popup-buttons { display: flex; gap: 10px; justify-content: space-between; margin-top: 18px; }
+.btn-enviar, .btn-cancelar { flex: 1; padding: 10px 16px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: 0.25s; }
+.btn-enviar { background-color: #0055a5; color: #fff; }
+.btn-enviar:hover { background-color: #004080; }
+.btn-cancelar { background-color: #e5e5e5; color: #333; }
+.btn-cancelar:hover { background-color: #cfcfcf; }
+
+/* Animação */
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+/* destaque de erro no campo */
+.field-error { border-color: #b30021 !important; box-shadow: 0 0 0 3px rgba(179,0,33,0.12) !important; }
+.form-error { background: #ffe5e9; border: 1px solid #ffb3c0; color: #8a0014; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-weight: 600; }
+.input-error { color: #b30021; font-size: 0.83rem; margin-top: 6px; }
+.form-info { background: #eaf6ff; border: 1px solid #bfe3ff; color: #003a66; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-weight: 600; }
+
+/* Banner base */
+.form-banner { display: none; padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-weight: 600; }
+.form-banner.is-error { background: #ffe5e9; border: 1px solid #ffb3c0; color: #8a0014; }
+.form-banner.is-info { background: #eaf6ff; border: 1px solid #bfe3ff; color: #003a66; }
+.form-banner.is-success { background: #e8f6ee; border: 1px solid #bfe8cf; color: #0f5f2b; }
+
+#vencimento_update { width: 100%; padding: 10px 12px; border: 1.5px solid #ccc; border-radius: 6px; background-color: #fff; font-size: 15px; transition: all 0.2s ease-in-out; color: #333; cursor: pointer; }
+#vencimento_update::-webkit-calendar-picker-indicator { background: url("data:image/svg+xml,%3Csvg fill='%234A90E2' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z'/%3E%3C/svg%3E") no-repeat center; opacity: 0.7; width: 22px; height: 22px; cursor: pointer; }
+#vencimento_update:hover, #vencimento_update:focus { border-color: #4a90e2; box-shadow: 0 0 4px rgba(74, 144, 226, 0.4); outline: none; }
+#vencimento_update:not(:disabled) { color: #222; }
+#vencimento_update:disabled { background-color: #f8f8f8; color: #888; cursor: not-allowed; }
+.input-error[data-for="vencimento"] { color: #c62828; font-size: 12px; margin-top: 4px; display: block; }
+#anos_para_vencimento, #vencimento_create { border: 1.5px dashed #4a90e2; }
+.admin-fields { border: 1px dashed #3a7bc8; background: #f7fbff; border-radius: 10px; padding: 14px; margin-top: 12px; }
+.admin-badge { display: inline-block; margin-left: 8px; padding: 3px 8px; font-size: 11px; font-weight: 800; letter-spacing: 0.4px; color: #0b3d7a; background: #e6f0ff; border: 1px solid #cfe2ff; border-radius: 999px; }
+#anos_para_vencimento, #vencimento_create { width: 100%; padding: 10px 12px; border: 1px solid #d6d6d6; border-radius: 8px; font-size: 0.95rem; transition: 0.2s; background: #fff; color: #333333; box-shadow: inset 0 0 0 1px rgba(0,85,165,0.06); }
+#anos_para_vencimento:hover, #vencimento_create:hover, #anos_para_vencimento:focus, #vencimento_create:focus { border-color: #0056b3; box-shadow: 0 0 0 3px rgba(0,85,165,0.12); outline: none; }
+#anos_para_vencimento::placeholder, #vencimento_create::placeholder { color: #6b7280; }
+#anos_para_vencimento.field-error, #vencimento_create.field-error { border-color: #b30021 !important; box-shadow: 0 0 0 3px rgba(179,0,33,0.12) !important; }
+.input-error[data-for="anos_para_vencimento"] { color: #b30021; font-size: 0.83rem; margin-top: 6px; display: block; }
+#vencimento_create::-webkit-calendar-picker-indicator { background: url("data:image/svg+xml,%3Csvg fill='%230055a5' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z'/%3E%3C/svg%3E") no-repeat center; opacity: 0.75; width: 22px; height: 22px; cursor: pointer; }
+#vencimento_update, #vencimento_create { cursor: pointer; }
+#anos_para_vencimento::-webkit-outer-spin-button, #anos_para_vencimento::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+#anos_para_vencimento { -moz-appearance: textfield; }
+@media (max-width: 420px) { .admin-fields { padding: 12px; border-radius: 8px; } }
+#data_create { width: 100%; padding: 10px 12px; border: 1px solid #d6d6d6; border-radius: 8px; font-size: 0.95rem; transition: 0.2s; background: #fff; color: #333333; cursor: pointer; }
+#data_create:hover, #data_create:focus { border-color: #0056b3; box-shadow: 0 0 0 3px rgba(0,85,165,0.12); outline: none; }
+#data_create::-webkit-calendar-picker-indicator { background: url("data:image/svg+xml,%3Csvg fill='%230055a5' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z'/%3E%3C/svg%3E") no-repeat center; opacity: 0.75; width: 22px; height: 22px; cursor: pointer; }
+.input-error[data-for="data"] { color: #b30021; font-size: 0.83rem; margin-top: 6px; display: block; }
+.form-divider { margin: 18px 0; border-top: 1px solid #e2e8f0; }
+.import-section { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 16px; border-radius: 6px; }
+.import-section.drag-over { border: 2px dashed #1b3b66; background: rgba(27, 59, 102, 0.07); transition: 0.2s ease-in-out; }
+.import-note { font-size: 14px; color: #475569; margin-bottom: 12px; }
+.import-hint { color: #475569; font-size: 12px; }

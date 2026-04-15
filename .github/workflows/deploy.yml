@@ -1,0 +1,88 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        id: deploy_ssh
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/Sistema_Suporte
+            
+            echo "=== ATUALIZANDO CÓDIGO ==="
+            git fetch origin main
+            git reset --hard origin/main
+            
+            echo "=== VERIFICANDO/CRIANDO VIRTUAL ENVIRONMENT ==="
+            if [ ! -d "env" ]; then
+                echo "Criando novo virtual environment..."
+                python3 -m venv env
+            fi
+            
+            echo "=== ATIVANDO ENV E INSTALANDO DEPENDÊNCIAS ==="
+            /home/ubuntu/Sistema_Suporte/env/bin/pip install --upgrade pip
+            /home/ubuntu/Sistema_Suporte/env/bin/pip install -r requirements.txt
+            
+            echo "=== EXECUTANDO COMANDOS DJANGO ==="
+            /home/ubuntu/Sistema_Suporte/env/bin/python manage.py makemigrations --noinput
+            /home/ubuntu/Sistema_Suporte/env/bin/python manage.py migrate --noinput
+            /home/ubuntu/Sistema_Suporte/env/bin/python manage.py collectstatic --noinput
+            
+            echo "=== REINICIANDO SERVIÇO ==="
+            sudo systemctl restart django_runserver
+            sudo systemctl restart gunicorn
+            
+            echo "✅ DEPLOY CONCLUÍDO!"
+
+      - name: Notify n8n on failure
+        if: failure()
+        shell: bash
+        run: |
+          set +e
+
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          ERROR_MSG="Deploy failed in GitHub Actions. Repo: ${{ github.repository }} | Branch: ${{ github.ref_name }} | Actor: ${{ github.actor }} | Run: ${RUN_URL}"
+
+          JSON_PAYLOAD=$(cat <<EOF
+          {
+            "workflow": { "name": "${{ github.workflow }}" },
+            "execution": {
+              "id": "${{ github.run_id }}",
+              "lastNodeExecuted": "Deploy via SSH",
+              "error": { "message": "$ERROR_MSG" }
+            },
+            "url": "$RUN_URL",
+            "repo": "${{ github.repository }}",
+            "branch": "${{ github.ref_name }}",
+            "actor": "${{ github.actor }}",
+            "sha": "${{ github.sha }}"
+          }
+          EOF
+          )
+
+          echo "Posting failure alert to n8n webhook..."
+          HTTP_CODE=$(curl -sS -o /tmp/n8n_resp.txt -w "%{http_code}" \
+            --connect-timeout 5 \
+            --max-time 12 \
+            --retry 2 \
+            --retry-delay 1 \
+            -X POST "https://eaatainterno.duckdns.org/n8n/webhook/eef01dae-fe9b-41f7-9ee2-00aadc1ac736" \
+            -H "Content-Type: application/json" \
+            -d "$JSON_PAYLOAD")
+
+          echo "n8n webhook HTTP status: $HTTP_CODE"
+          echo "n8n response (first 300 chars):"
+          head -c 300 /tmp/n8n_resp.txt || true
+          echo
+          exit 0

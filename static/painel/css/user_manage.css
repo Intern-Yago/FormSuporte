@@ -1,0 +1,367 @@
+/* =========================
+   TOOLBAR / FILTROS
+========================= */
+.toolbar{
+  display:grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap:12px;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+.search input,
+.filter select{
+  width:100%;
+  height:44px;
+  padding:0 12px;
+  border-radius:10px;
+  border:1px solid var(--stroke);
+  background:#fff;
+}
+
+.filter{ min-width:220px; }
+
+.counts{
+  font-size:13px;
+  color:var(--muted);
+  display:flex;
+  gap:12px;
+  justify-content:flex-end;
+  flex-wrap:wrap;
+}
+
+
+/* =========================
+   TABELA
+========================= */
+.table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  overflow:hidden;
+  border:1px solid var(--stroke);
+  border-radius:14px;
+  background:#fff;
+}
+
+.table th,
+.table td{
+  padding:12px;
+  border-bottom:1px solid var(--stroke);
+  text-align:left;
+  font-size:14px;
+  vertical-align:middle;
+}
+
+.table th{
+  background:#f8fafc;
+  color:var(--muted);
+  font-weight:800;
+}
+
+.table tr:last-child td{
+  border-bottom:none;
+}
+
+
+/* =========================
+   BADGES / AÇÕES
+========================= */
+.badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:26px;
+  padding:0 10px;
+  border-radius:999px;
+  border:1px solid var(--stroke);
+  font-size:12px;
+  font-weight:800;
+  background:#fff;
+}
+
+.actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  height:34px;
+  padding:0 10px;
+  border-radius:10px;
+  border:1px solid var(--stroke);
+  background:#fff;
+  cursor:pointer;
+  font-weight:800;
+  font-size:13px;
+  transition:.15s;
+}
+
+.btn:hover{
+  background:#f1f5f9;
+}
+
+.btn-danger{
+  border-color:#fecaca;
+  color:#b91c1c;
+}
+
+.btn-danger:hover{
+  background:#fee2e2;
+}
+
+
+/* =========================
+   MODAL BASE
+========================= */
+.modal-backdrop{
+  position:fixed;
+  inset:0;
+  background:rgba(15,23,42,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+  z-index:50;
+}
+
+.modal{
+  width:min(520px, 100%);
+  background:#fff;
+  border-radius:16px;
+  border:1px solid var(--stroke);
+  padding:16px;
+}
+
+.modal h3{
+  margin:0 0 10px 0;
+}
+
+.modal .row{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-bottom:10px;
+}
+
+.modal input,
+.modal select{
+  height:44px;
+  padding:0 12px;
+  border-radius:10px;
+  border:1px solid var(--stroke);
+  background:#fff;
+}
+
+.modal .footer{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:10px;
+}
+
+
+/* =========================
+   MODAL GRANDE (EDIÇÃO)
+========================= */
+#edit-backdrop .modal{
+  width:min(760px, calc(100vw - 32px));
+}
+
+#edit-form{
+  max-height:85vh;
+  overflow:auto;
+  padding-right:4px;
+}
+
+
+/* =========================
+   GRUPO COMERCIAL
+========================= */
+#edit-grupo-comercial-row select{
+  font-weight:600;
+}
+
+
+/* =========================
+   SUPORTE (TÉCNICOS)
+========================= */
+#edit-suporte-extras{
+  margin-top:14px;
+  padding:16px;
+  border:1px solid var(--stroke);
+  border-radius:16px;
+  background:#f8fafc;
+}
+
+/* radio container */
+#edit-suporte-extras .radio-group{
+  border:1px solid var(--stroke);
+  border-radius:14px;
+  background:#fff;
+  padding:14px 16px;
+}
+
+#edit-suporte-extras .radio-options{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:10px;
+}
+
+#edit-suporte-extras .radio-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:44px;
+  padding:10px 12px;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  background:#fff;
+  cursor:pointer;
+}
+
+#edit-suporte-extras .radio-item:hover{
+  border-color:#cbd5f5;
+  background:#f8fafc;
+}
+
+#edit-suporte-extras .radio-item input{
+  margin:0;
+}
+
+#edit-suporte-extras .radio-item label{
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+}
+
+
+/* países */
+#edit-suporte-extras .checkbox-group{
+  margin-top:14px;
+  border:1px solid var(--stroke);
+  border-radius:14px;
+  background:#fff;
+  padding:14px 16px;
+  max-height:260px;
+  overflow:auto;
+}
+
+#edit-suporte-extras .checkbox-group-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:12px;
+  padding-bottom:10px;
+  border-bottom:1px solid #eef2f7;
+}
+
+#edit-suporte-extras .checkbox-group-header strong{
+  font-size:15px;
+}
+
+#edit-suporte-extras .selected-count{
+  font-size:12px;
+  font-weight:700;
+  color:#2563eb;
+  background:rgba(37,99,235,.08);
+  padding:6px 10px;
+  border-radius:999px;
+}
+
+#edit-suporte-extras .checkbox-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-height:40px;
+  padding:6px 4px;
+  border-bottom:1px solid #f1f5f9;
+}
+
+#edit-suporte-extras .checkbox-item:last-child{
+  border-bottom:0;
+}
+
+#edit-suporte-extras .checkbox-item input{
+  width:16px;
+  height:16px;
+}
+
+#edit-suporte-extras .checkbox-item label{
+  font-size:14px;
+  cursor:pointer;
+}
+
+
+/* =========================
+   RESPONSIVO
+========================= */
+@media (max-width: 992px){
+  .toolbar{
+    grid-template-columns: 1fr;
+  }
+
+  .filter { min-width: 100%; }
+
+  .counts{
+    justify-content:flex-start;
+  }
+
+  /* Transform table to cards */
+  .table, .table thead, .table tbody, .table th, .table td, .table tr {
+    display: block;
+  }
+
+  .table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .table tr {
+    border: 1px solid var(--stroke);
+    margin-bottom: 15px;
+    border-radius: 14px;
+    padding: 10px;
+    background: #fff;
+  }
+
+  .table td {
+    border: none;
+    border-bottom: 1px solid #f1f5f9;
+    position: relative;
+    padding-left: 50% !important;
+    text-align: right !important;
+    min-height: 40px;
+  }
+
+  .table td:last-child { border-bottom: 0; }
+
+  .table td:before {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 800;
+    color: var(--muted);
+    content: attr(data-label);
+  }
+
+  .actions {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 640px){
+  #edit-suporte-extras .radio-options{
+    grid-template-columns:1fr;
+  }
+
+  #edit-backdrop .modal{
+    width:calc(100vw - 20px);
+  }
+}

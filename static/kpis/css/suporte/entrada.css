@@ -1,0 +1,388 @@
+:root {
+  --bg: transparent;
+  --panel: #ffffff;
+  --line: #e2e8f0;
+  --line-soft: #f1f5f9;
+  --blue: #0099e0;
+  --blue-soft: #e0f2fe;
+  --cyan: #06b6d4;
+  --cyan-soft: #cffafe;
+  --orange: #f59e0b;
+  --orange-soft: #fef3c7;
+  --text: #0f172a;
+  --text-title: #1e293b;
+  --muted: #64748b;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --radius: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button, input, select {
+  font-family: inherit;
+}
+
+/* =========================================================================
+   WRAPPER (LIGHT THEME)
+   ========================================================================= */
+.kpi-wrapper {
+  background-color: transparent; 
+  padding: 10px 24px 24px 24px;
+  color: var(--text);
+  min-height: 85vh;
+  margin-bottom: 20px;
+}
+
+.kpi-wrapper .eaata-content {
+  padding: 0; 
+}
+
+/* =========================================================================
+   CABEÇALHO DA PÁGINA DE KPI
+   ========================================================================= */
+.kpi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.kpi-header h2 {
+  margin: 0;
+  font-size: 26px;
+  color: var(--text-title) !important;
+  font-weight: 800;
+}
+
+.kpi-subtitle {
+  font-size: 14px;
+  margin-top: 5px;
+  margin-bottom: 0;
+  color: var(--muted) !important;
+}
+
+.kpi-header-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.kpi-btn {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+.kpi-btn:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+/* =========================================================================
+   COMPONENTES DE ENTRADA DE DADOS
+   ========================================================================= */
+.eaata-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.entry-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.entry-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.period-card, .record-form-card, .technicians-card, .records-card {
+  padding: 20px;
+}
+
+.section-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.no-margin {
+  margin-bottom: 0;
+}
+
+.mini-period-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.period-center {
+  text-align: center;
+}
+
+.period-center .year {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.period-center .month {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-title);
+  text-transform: uppercase;
+}
+
+.period-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 24px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  transition: 0.2s ease;
+}
+
+.period-btn:hover {
+  background: #f1f5f9;
+  color: var(--text-title);
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-title);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.field input, .field select {
+  width: 100%;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: var(--text-title);
+  padding: 0 12px;
+  outline: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.field input::placeholder {
+  color: #94a3b8;
+}
+
+.field input:focus, .field select:focus {
+  border-color: var(--blue);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(0, 153, 224, 0.1);
+}
+
+.btn-primary {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: 8px;
+  background: var(--blue);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: #0284c7;
+}
+
+.records-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.records-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-title);
+}
+
+.count-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.records-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.records-table th {
+  text-align: left;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.records-table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  font-weight: 600;
+  color: var(--text-title);
+  white-space: nowrap;
+}
+
+.records-table tfoot td {
+  color: var(--muted);
+  font-weight: 800;
+  text-transform: uppercase;
+  border-top: 1px solid var(--line);
+}
+
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.badge-chaveiro {
+  color: var(--blue);
+  background: var(--blue-soft);
+}
+
+.badge-diagnostico {
+  color: #0369a1;
+  background: #e0f2fe;
+}
+
+.nota-highlight {
+  color: var(--orange);
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.tech-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.tech-item {
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+}
+
+.tech-name {
+  font-weight: 700;
+  color: var(--text-title);
+  font-size: 13px;
+}
+
+.tech-status {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tech-status.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-link {
+  border: none;
+  background: transparent;
+  color: var(--blue);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 0;
+}
+
+.action-link:hover {
+  text-decoration: underline;
+}
+
+.action-link.danger {
+  color: #ef4444;
+}
+
+.tech-empty {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 10px 0;
+  text-align: center;
+}
+
+@media (max-width: 1200px) {
+  .entry-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .kpi-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+  .records-header { flex-direction: column; align-items: flex-start; }
+}

@@ -1,0 +1,404 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clientes</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --stroke:#e5e7eb;
+      --primary:#111827;
+      --primary-2:#374151;
+      --success:#16a34a;
+      --info:#2563eb;
+      --warning:#d97706;
+      --danger:#dc2626;
+      --shadow:0 10px 30px rgba(17,24,39,.08);
+      --radius:20px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      font-family:Inter, Arial, sans-serif;
+      color:var(--text);
+    }
+
+    .page{
+      max-width:1400px;
+      margin:0 auto;
+      padding:32px 20px 48px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      margin-bottom:24px;
+      flex-wrap:wrap;
+    }
+
+    .title-wrap h1{
+      margin:0;
+      font-size:2rem;
+      font-weight:800;
+      letter-spacing:-0.02em;
+    }
+
+    .title-wrap p{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:.98rem;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      text-decoration:none;
+      border:none;
+      border-radius:14px;
+      padding:12px 18px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.2s ease;
+    }
+
+    .btn-dark{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    .btn-dark:hover{
+      transform:translateY(-1px);
+      background:#000;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:16px;
+      margin-bottom:24px;
+    }
+
+    .stat-card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      padding:20px;
+      box-shadow:var(--shadow);
+    }
+
+    .stat-label{
+      color:var(--muted);
+      font-size:.92rem;
+      margin-bottom:10px;
+    }
+
+    .stat-value{
+      font-size:2rem;
+      font-weight:800;
+      line-height:1;
+    }
+
+    .toolbar{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+      margin-bottom:24px;
+    }
+
+    .search-form{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:12px;
+    }
+
+    .search-form input{
+      width:100%;
+      height:48px;
+      border-radius:14px;
+      border:1px solid var(--stroke);
+      padding:0 16px;
+      font-size:1rem;
+      outline:none;
+      background:#fff;
+    }
+
+    .search-form input:focus{
+      border-color:#c7d2fe;
+      box-shadow:0 0 0 4px rgba(99,102,241,.12);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:18px;
+    }
+
+    .client-card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius:24px;
+      padding:20px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+      min-height:270px;
+    }
+
+    .client-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+    }
+
+    .client-name{
+      margin:0;
+      font-size:1.15rem;
+      font-weight:800;
+      line-height:1.3;
+    }
+
+    .client-role{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:.94rem;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:.78rem;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .badge-pf{
+      background:rgba(37,99,235,.10);
+      color:var(--info);
+    }
+
+    .badge-pj{
+      background:rgba(22,163,74,.10);
+      color:var(--success);
+    }
+
+    .badge-empty{
+      background:rgba(217,119,6,.12);
+      color:var(--warning);
+    }
+
+    .meta{
+      display:grid;
+      gap:10px;
+    }
+
+    .meta-item{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      padding:12px 14px;
+      border-radius:16px;
+      background:#f9fafb;
+      border:1px solid #eef2f7;
+    }
+
+    .meta-label{
+      color:var(--muted);
+      font-size:.8rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+
+    .meta-value{
+      font-size:.95rem;
+      font-weight:600;
+      word-break:break-word;
+    }
+
+    .client-actions{
+      margin-top:auto;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn-outline{
+      background:#fff;
+      color:var(--primary);
+      border:1px solid var(--stroke);
+    }
+
+    .btn-outline:hover{
+      background:#f3f4f6;
+    }
+
+    .empty{
+      background:var(--card);
+      border:1px dashed #d1d5db;
+      border-radius:24px;
+      padding:40px 24px;
+      text-align:center;
+      color:var(--muted);
+      box-shadow:var(--shadow);
+    }
+
+    @media (max-width: 1100px){
+      .stats{grid-template-columns:repeat(2, minmax(0, 1fr));}
+      .grid{grid-template-columns:repeat(2, minmax(0, 1fr));}
+    }
+
+    @media (max-width: 700px){
+      .stats{grid-template-columns:1fr;}
+      .grid{grid-template-columns:1fr;}
+      .search-form{grid-template-columns:1fr;}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div class="title-wrap">
+        <h1>Clientes</h1>
+        <p>Gerencie sua base de clientes, documentos, contato e vínculo com Odoo.</p>
+      </div>
+
+      <a href="/admin/clientes/cliente/add/" class="btn btn-dark">+ Novo cliente</a>
+    </div>
+
+    <section class="stats">
+      <div class="stat-card">
+        <div class="stat-label">Total de clientes</div>
+        <div class="stat-value">{{ total_clientes }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pessoa física</div>
+        <div class="stat-value">{{ total_pf }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pessoa jurídica</div>
+        <div class="stat-value">{{ total_pj }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Sincronizados com Odoo</div>
+        <div class="stat-value">{{ total_com_odoo }}</div>
+      </div>
+    </section>
+
+    <section class="toolbar">
+      <form method="get" class="search-form">
+        <input
+          type="text"
+          name="q"
+          value="{{ busca }}"
+          placeholder="Buscar por nome, profissão, CPF, CNPJ, cidade, telefone..."
+        >
+        <button type="submit" class="btn btn-dark">Buscar</button>
+      </form>
+    </section>
+
+    {% if clientes %}
+      <section class="grid">
+        {% for cliente in clientes %}
+          <article class="client-card">
+            <div class="client-top">
+              <div>
+                <h2 class="client-name">{{ cliente.nome }}</h2>
+                <div class="client-role">
+                  {% if cliente.profissao %}
+                    {{ cliente.profissao }}
+                  {% else %}
+                    Sem profissão informada
+                  {% endif %}
+                </div>
+              </div>
+
+              {% if cliente.cnpj %}
+                <span class="badge badge-pj">PJ</span>
+              {% elif cliente.cpf %}
+                <span class="badge badge-pf">PF</span>
+              {% else %}
+                <span class="badge badge-empty">Sem doc</span>
+              {% endif %}
+            </div>
+
+            <div class="meta">
+              <div class="meta-item">
+                <span class="meta-label">Documento</span>
+                <span class="meta-value">
+                  {% if cliente.cnpj %}
+                    {{ cliente.cnpj }}
+                  {% elif cliente.cpf %}
+                    {{ cliente.cpf }}
+                  {% else %}
+                    Não informado
+                  {% endif %}
+                </span>
+              </div>
+
+              <div class="meta-item">
+                <span class="meta-label">Contato</span>
+                <span class="meta-value">
+                  {% if cliente.telefone %}{{ cliente.telefone }}{% endif %}
+                  {% if cliente.telefone and cliente.email %} • {% endif %}
+                  {% if cliente.email %}{{ cliente.email }}{% endif %}
+                  {% if not cliente.telefone and not cliente.email %}Sem contato{% endif %}
+                </span>
+              </div>
+
+              <div class="meta-item">
+                <span class="meta-label">Localidade</span>
+                <span class="meta-value">
+                  {% if cliente.cidade or cliente.uf %}
+                    {{ cliente.cidade }}{% if cliente.cidade and cliente.uf %}/{% endif %}{{ cliente.uf }}
+                  {% else %}
+                    Não informada
+                  {% endif %}
+                </span>
+              </div>
+
+              <div class="meta-item">
+                <span class="meta-label">Odoo</span>
+                <span class="meta-value">
+                  {% if cliente.odoo_partner_id %}
+                    ID {{ cliente.odoo_partner_id }}
+                  {% else %}
+                    Não sincronizado
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+
+            <div class="client-actions">
+              <a href="{% url 'clientes:detalhe' cliente.id %}" class="btn btn-outline">Ver detalhes</a>
+              <a href="/admin/clientes/cliente/{{ cliente.id }}/change/" class="btn btn-outline">Editar</a>
+            </div>
+          </article>
+        {% endfor %}
+      </section>
+    {% else %}
+      <section class="empty">
+        <h3>Nenhum cliente encontrado</h3>
+        <p>Tente ajustar a busca ou cadastrar um novo cliente.</p>
+      </section>
+    {% endif %}
+  </div>
+</body>
+</html>

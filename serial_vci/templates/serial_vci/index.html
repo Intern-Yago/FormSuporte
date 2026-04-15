@@ -1,0 +1,1294 @@
+{% load static %}
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        border: none;
+    }
+
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-dark {
+        background: #333;
+        color: white;
+    }
+
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    th {
+        background: #f9f9f9;
+        text-align: left;
+    }
+
+    #popup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #popup-content {
+        background: white;
+        padding: 30px;
+        width: 900px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 20px rgba(0,0,0,0.2);
+    }
+
+    #busca {
+        margin-left: 20px;
+        padding: 10px 14px;
+        width: 300px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+
+    tr:hover {
+        background: #fafafa;
+    }
+
+    .input {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        margin-top: 5px;
+        font-size: 14px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+    
+    .foto-miniatura {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        margin: 5px;
+        border-radius: 4px;
+        cursor: pointer; /* Adicionado cursor pointer para indicar clicável */
+    }
+    .garantias-container {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    /* Limita tamanho das imagens dentro dos comentários */
+    .garantia-img {
+        width: 70px;
+        height: 70px;
+        object-fit: cover;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .lista-fotos-horizontal {
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+        overflow-x: auto;        /* Habilita scroll horizontal */
+        overflow-y: hidden;
+        padding-bottom: 10px;
+        scroll-behavior: smooth; /* Rolagem suave */
+        max-width: 100%;
+    }
+
+    .lista-fotos-horizontal::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .lista-fotos-horizontal::-webkit-scrollbar-thumb {
+        background: #ddd;
+        border-radius: 4px;
+    }
+
+    .lista-fotos-horizontal img {
+        flex-shrink: 0;
+        width: 110px;
+        height: 110px;
+        object-fit: cover;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+    #popup-content {
+        position: relative; /* IMPORTANTE! */
+    }
+    .fechar-popup-x {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        background: #e63946;
+        color: white;
+        border: none;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        font-size: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        transition: 0.2s;
+        z-index: 9999;
+    }
+
+    .fechar-popup-x:hover {
+        background: #c61c2f;
+        transform: scale(1.05);
+    }
+
+</style>
+
+<div style="padding: 25px;">
+
+    <h1 style="font-size: 30px; margin-bottom: 20px;">
+        Lista de Seriais Registrados
+    </h1>
+
+    <button onclick="abrirModalNovo()" class="btn btn-primary">
+        + Adicionar Serial
+    </button>
+
+    <input type="text" id="busca" placeholder="Buscar..."
+           onkeyup="debounceBuscar(this.value)">
+</div>
+
+
+<div id="tabela-seriais">
+    {% include "serial_vci/_tabela.html" %}
+</div>
+
+
+<div id="popup" onclick="fecharPopup()">
+    <div id="popup-content" onclick="event.stopPropagation()">
+        <button onclick="fecharPopup()" class="fechar-popup-x">
+            ✕
+        </button>
+        <h2 id="titulo-detalhes-serial">Detalhes do Serial</h2>
+
+        <div id="conteudo-detalhes"></div>
+
+        
+    </div>
+</div>
+
+<div id="modal-novo" onclick="fecharModalNovo()"
+     style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,0.6);justify-content:center;align-items:center;z-index:9999">
+
+    <div onclick="event.stopPropagation()"
+         style="background:white;padding:30px;width:520px;border-radius:12px;
+                box-shadow:0px 4px 20px rgba(0,0,0,0.25);animation:fadeIn .2s ease;">
+
+        <h2 style="margin-top:0;margin-bottom:20px;font-size:26px;">Novo Serial</h2>
+
+        <form id="form-novo-serial" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+
+                <div style="grid-column: span 2;">
+                    <label>VCI</label>
+                    <input name="numero_vci" class="input" required>
+                </div>
+
+                <div>
+                    <label>Tablet</label>
+                    <input name="numero_tablet" class="input">
+                </div>
+
+                <div>
+                    <label>Prog</label>
+                    <input name="numero_prog" class="input">
+                </div>
+
+                <div>
+                    <label>Cliente</label>
+                    <input name="cliente" class="input" required>
+                </div>
+
+                <div>
+                    <label>Email</label>
+                    <input name="email" type="email" class="input" required>
+                </div>
+
+                <div>
+                    <label>Telefone</label>
+                    <input name="telefone" class="input">
+                </div>
+
+                <div>
+                    <label>Pedido</label>
+                    <input name="pedido" class="input" required>
+                </div>
+
+                <div style="grid-column: span 2;">
+                    <label>Fotos (múltiplas)</label>
+
+                    <div id="preview-container" 
+                        style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;"></div>
+
+                    <input type="file" id="input-fotos" multiple accept="image/*"
+                        style="display:none" onchange="handleAddImages(event)">
+
+                    <button type="button" onclick="document.getElementById('input-fotos').click()"
+                            class="btn btn-primary" style="margin-top:10px;">
+                        + Adicionar fotos
+                    </button>
+                </div>
+
+            </div>
+
+            <div style="margin-top:25px;display:flex;justify-content:space-between;align-items:center;">
+                <button type="button" onclick="fecharModalNovo()" class="btn btn-dark">Cancelar</button>
+                <button type="button" onclick="salvarNovoSerial()" class="btn btn-primary">Salvar</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div id="modal-edicao" onclick="fecharModalEdicao()"
+     style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,0.6);justify-content:center;align-items:center;z-index:9999">
+
+    <div onclick="event.stopPropagation()"
+         style="background:white;padding:30px;width:520px;border-radius:12px;
+                box-shadow:0px 4px 20px rgba(0,0,0,0.25);animation:fadeIn .2s ease;">
+
+        <h2 style="margin-top:0;margin-bottom:20px;font-size:26px;">
+            Editar Serial <span id="edicao-serial-id-text"></span>
+        </h2>
+        
+        <form id="form-edicao-serial" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="hidden" name="serial_id" id="edicao-serial-id">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+                
+                <div style="grid-column: span 2;">
+                    <label>VCI</label>
+                    <input name="numero_vci" class="input" id="edicao-numero_vci" required>
+                </div>
+
+                <div>
+                    <label>Tablet</label>
+                    <input name="numero_tablet" class="input" id="edicao-numero_tablet">
+                </div>
+
+                <div>
+                    <label>Prog</label>
+                    <input name="numero_prog" class="input" id="edicao-numero_prog">
+                </div>
+                <div>
+                    <label>Email</label>
+                    <input name="email" type="email" class="input" id="edicao-email">
+                </div>
+
+                <div>
+                    <label>Telefone</label>
+                    <input name="telefone" class="input" id="edicao-telefone">
+                </div>
+
+                
+                <div style="grid-column: span 2;">
+                    <label>Fotos Existentes (Clique na ✕ para remover)</label>
+                    <div id="preview-edicao-existente-container" 
+                        style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;margin-bottom:15px;"></div>
+
+                    <label>Adicionar Novas Fotos</label>
+                    <div id="preview-edicao-nova-container" 
+                        style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;"></div>
+
+                    <input type="file" id="input-fotos-edicao" multiple accept="image/*"
+                        style="display:none" onchange="handleAddImagesEdicao(event)">
+
+                    <button type="button" onclick="document.getElementById('input-fotos-edicao').click()"
+                            class="btn btn-primary" style="margin-top:10px;">
+                        + Adicionar mais fotos
+                    </button>
+                </div>
+
+            </div>
+
+            <div style="margin-top:25px;display:flex;justify-content:space-between;align-items:center;">
+                <button type="button" onclick="fecharModalEdicao()" class="btn btn-dark">Cancelar</button>
+                <button type="button" onclick="salvarEdicaoSerial()" class="btn btn-primary">Salvar Edição</button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<div id="modal-imagem" onclick="fecharModalImagem()"
+     style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,0.85);justify-content:center;align-items:center;z-index:9999999">
+
+    <div onclick="event.stopPropagation()"
+         style="background:transparent;padding:0;max-width:90%;max-height:90%;
+                box-shadow:none;">
+        <img id="imagem-completa" src="" style="max-width:70%;max-height:100%;display:block;margin:auto;">
+    </div>
+    
+    <button onclick="fecharModalImagem()"
+            style="position:absolute;top:20px;right:30px;
+                   background:white;color:#333;border:none;
+                   padding: 8px 15px; border-radius: 5px; cursor: pointer; font-size: 20px;z-index:10001;">
+        ✕ Fechar
+    </button>
+</div>
+
+<div id="modal-garantia-edicao"
+     onclick="fecharModalGarantiaEdicao()"
+     style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+     background:rgba(0,0,0,0.6);justify-content:center;align-items:center;z-index:999999">
+
+    <div onclick="event.stopPropagation()"
+         style="background:white;padding:25px;width:600px;border-radius:12px;
+                max-height:90vh;overflow-y:auto;position:relative;">
+
+        <!-- BOTÕES NO TOPO DIREITO -->
+        <div style="position:absolute;top:15px;right:15px;display:flex;gap:15px;">
+
+            <!-- adicionar comentário -->
+            <button onclick="abrirModalNovoComentario()"
+                style="background:none;border:none;font-size:26px;cursor:pointer;">
+                +
+            </button>
+
+            <!-- fechar popup -->
+            <button onclick="fecharModalGarantiaEdicao()"
+                style="background:none;border:none;font-size:26px;cursor:pointer;">
+                ✕
+            </button>
+        </div>
+
+        <!-- TÍTULO -->
+        <h2 id="garantia-edicao-titulo" style="margin-top:0;font-size:24px;">
+            Comentários da Garantia
+        </h2>
+
+        <!-- LISTA DOS COMENTÁRIOS -->
+        <div id="garantia-comentarios-list" style="margin-top:20px;"></div>
+
+    </div>
+</div>
+
+<div id="modal-garantia" 
+     onclick="fecharPopupGarantia()"
+     style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,0.6);justify-content:center;align-items:center;z-index:99999">
+
+    <div onclick="event.stopPropagation()"
+        style="background:white;padding:25px;width:480px;border-radius:10px;">
+
+        <h2>Adicionar Garantia</h2>
+
+        <!-- TÍTULO -->
+        <label>Título da Garantia</label>
+        <input id="garantiaTitulo" class="input" placeholder="Ex: Tela apagada, não liga" required>
+
+        <!-- DESCRIÇÃO -->
+        <label style="margin-top:15px;">Descrição do Problema</label>
+        <textarea id="garantiaDescricao" class="input" style="height:120px;"></textarea>
+
+        <!-- FOTOS -->
+        <label style="margin-top:15px;">Fotos</label>
+        <input type="file" id="garantiaFotos" multiple accept="image/*" class="input" onchange="previewGarantiaFotos(event)">
+
+        <div id="garantia-preview" 
+            style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
+        </div>
+
+        <div style="margin-top:20px;display:flex;justify-content:space-between;">
+            <button onclick="fecharPopupGarantia()" type="button" class="btn btn-dark">Cancelar</button>
+            <button onclick="salvarGarantia()" type="button" class="btn btn-primary">Salvar</button>
+        </div>
+    </div>
+
+
+</div>
+<div id="modal-novo-comentario"
+     onclick="fecharModalNovoComentario()"
+     style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+            background:rgba(0,0,0,0.6);justify-content:center;align-items:center;z-index:1000000;">
+
+    <div onclick="event.stopPropagation()"
+         style="background:white;padding:25px;width:480px;border-radius:10px;">
+        
+        <h2>Novo Comentário</h2>
+
+        <label>Comentário</label>
+        <textarea id="comentarioTexto" class="input" style="height:120px;"></textarea>
+
+        <label style="margin-top:15px;">Fotos</label>
+        <input type="file" id="comentarioFotos" multiple accept="image/*"
+               class="input" onchange="previewComentarioFotos(event)">
+
+        <div id="comentario-preview"
+            style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;"></div>
+
+        <div style="margin-top:20px;display:flex;justify-content:space-between;">
+            <button onclick="fecharModalNovoComentario()" class="btn btn-dark">Cancelar</button>
+            <button onclick="salvarNovoComentario()" class="btn btn-primary">Salvar</button>
+        </div>
+    </div>
+
+</div>
+
+
+<script>
+const isSuperUser = {{ request.user.is_superuser|yesno:"true,false" }};
+let edicaoAbertaViaPopup = false;
+
+/* =======================================
+   VARIÁVEIS GLOBAIS
+======================================= */
+let fotosSelecionadasNovo = []; 
+let fotosSelecionadasEdicao = []; 
+let fotosExistentesEdicao = []; 
+let timer = null;
+let paginaAtual = 1;
+let garantiaAtual = null;
+let comentarioFotosSelecionadas = [];
+
+/* ===========================
+   BUSCA + PAGINAÇÃO AJAX
+=========================== */
+function debounceBuscar(valor) {
+    clearTimeout(timer);
+    timer = setTimeout(() => buscar(valor), 300);
+}
+
+function buscar(valor) {
+    fetch(`/seriais/?q=${encodeURIComponent(valor)}&page=${paginaAtual}`, {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById("tabela-seriais").innerHTML = html;
+        });
+}
+
+function mudarPagina(pagina) {
+    paginaAtual = pagina;
+    buscar(document.getElementById("busca").value);
+}
+
+/* ===========================
+   POPUP DETALHES (Modificado)
+=========================== */
+function abrirDetalhes(id) {
+
+    serialAtual = id; // <<< importante para sistema de garantia
+
+    fetch(`/seriais/detalhes/${id}/`)
+        .then(res => res.json())
+        .then(data => {
+
+            document.getElementById("titulo-detalhes-serial").innerHTML =
+                `Detalhes do Serial <span style="opacity:0.6;font-size:18px;">#${data.id}</span>`;
+            const ativacao = data.data || "-";
+            const clienteNome = data.cliente || "-";
+            const clienteTel  = data.telefone || "-";
+
+            // ================================================
+            // LADO ESQUERDO → SEU LAYOUT ORIGINAL
+            // ================================================
+
+            let ladoEsquerdo = `
+                <div style="
+                    background:#f1f5f9;
+                    padding:15px;
+                    border-radius:8px;
+                    margin-bottom:15px;
+                    border-left:4px solid #0a75c2;
+                ">
+                    <h3 style="margin:0 0 10px 0;font-size:20px;color:#0a75c2;">
+                        Informações Gerais
+                    </h3>
+
+                    <p><b>VCI:</b> ${data.numero_vci}</p>
+                    <p><b>Tablet:</b> ${data.numero_tablet || '-'}</p>
+                    <p><b>Prog:</b> ${data.numero_prog || '-'}</p>
+                    <p><b>Pedido:</b> ${data.pedido || '-'}</p>
+                </div>
+
+                <div style="
+                    background:#eef8ff;
+                    padding:15px;
+                    border-radius:8px;
+                    margin-bottom:15px;
+                    border-left:4px solid #0093ff;
+                ">
+                    <h3 style="margin:0 0 10px 0;font-size:20px;color:#007acc;">
+                        Cliente
+                    </h3>
+
+                    <p><b>Nome:</b> ${clienteNome}</p>
+                    <p><b>Telefone:</b> ${clienteTel}</p>
+                    <p><b>Email:</b> ${data.email || '-'}</p>
+                    <p><b>Data de Ativação:</b> ${ativacao}</p>
+                </div>
+
+                <div style="padding:10px 0;border-bottom:1px solid #ddd;margin-bottom:10px;">
+                    <h3 style="margin:0;font-size:20px;">Fotos</h3>
+                </div>
+
+                <div class="lista-fotos-horizontal">
+
+            `;
+
+            data.fotos.forEach(url => {
+                ladoEsquerdo += `
+                    <img src="${url}" class="foto-miniatura"
+                         onclick="abrirImagemCompleta('${url}')">
+                `;
+            });
+
+            ladoEsquerdo += `
+                </div>
+
+                <button onclick="abrirModalEdicao(${data.id}, true); fecharPopup()"
+                        class="btn btn-primary" style="margin-top:20px;">
+                    Editar Serial
+                </button>
+            `;
+
+
+            // ================================================
+            // LADO DIREITO → GARANTIAS
+            // ================================================
+
+            let ladoDireito = `
+                <div style="padding:10px;">
+
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <h3 style="margin:0;">Histórico de Garantias</h3>
+
+                        <!-- BOTÃO DE ADICIONAR GARANTIA -->
+                        <button onclick="abrirPopupGarantia()"
+                            style="
+                                background:#0A84FF;
+                                color:white;
+                                border:none;
+                                width:32px;
+                                height:32px;
+                                border-radius:50%;
+                                font-size:22px;
+                                line-height:0;
+                                cursor:pointer;
+                            ">
+                            +
+                        </button>
+                    </div>
+
+                    <div id="garantias-list">Carregando...</div>
+                </div>
+            `;
+
+
+
+            // ================================================
+            // GRID FINAL COM 2 COLUNAS
+            // ================================================
+
+            const layoutFinal = `
+                <div style="display:flex;gap:20px;width:100%;">
+
+                    <!-- ESQUERDA -->
+                    <div style="width:55%;overflow-y:auto;max-height:70vh;">
+                        ${ladoEsquerdo}
+                    </div>
+
+                    <!-- DIREITA -->
+                    <div class="garantias-container" style="
+                        width:45%;
+                        border-left:2px solid #ddd;
+                        padding-left:20px;
+                        overflow-y:auto;
+                        max-height:70vh;
+                    ">
+
+                        ${ladoDireito}
+                    </div>
+
+                </div>
+            `;
+
+            // INJETAR NO POPUP
+            document.getElementById("conteudo-detalhes").innerHTML = layoutFinal;
+            document.getElementById("popup").style.display = "flex";
+
+            // CARREGAR GARANTIAS (nova função)
+            carregarGarantias();
+        });
+}
+
+function fecharPopup() {
+    document.getElementById("popup").style.display = "none";
+}
+
+/* ===========================
+   VISUALIZADOR DE IMAGEM (NOVO)
+=========================== */
+
+function abrirImagemCompleta(url) {
+    document.getElementById("imagem-completa").src = url;
+    document.getElementById("modal-imagem").style.display = "flex";
+}
+
+function fecharModalImagem() {
+    document.getElementById("modal-imagem").style.display = "none";
+    document.getElementById("imagem-completa").src = ""; 
+}
+
+
+/* ===========================
+   WEBSOCKET REALTIME
+=========================== */
+const protocol = "wss://";
+const socket = new WebSocket(
+    protocol + window.location.host + "/ws/seriais/"
+);
+
+socket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+
+    if (data.mensagem === "atualizar_tabela") {
+        buscar(document.getElementById("busca").value);
+    }
+};
+
+/* ===========================
+   CSRF Utility
+=========================== */
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        const cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+/* ===========================
+   MODAL NOVO SERIAL
+=========================== */
+
+function abrirModalNovo() {
+    document.getElementById("modal-novo").style.display = "flex";
+    document.getElementById("form-novo-serial").reset();
+    fotosSelecionadasNovo = []; 
+    atualizarPreviewNovo();
+}
+
+function fecharModalNovo() {
+    document.getElementById("modal-novo").style.display = "none";
+}
+
+function salvarNovoSerial() {
+    const form = document.getElementById("form-novo-serial");
+    const formData = new FormData(form);
+
+    fotosSelecionadasNovo.forEach(file => {
+        formData.append("fotos", file);
+    });
+
+    fetch("/seriais/adicionar/", {
+        method: "POST",
+        body: formData 
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                fecharModalNovo();
+                form.reset(); 
+                fotosSelecionadasNovo = []; 
+                atualizarPreviewNovo();
+                buscar(document.getElementById("busca").value);
+            } else {
+                alert("Erro: " + JSON.stringify(data.errors));
+            }
+        });
+}
+
+/* ===========================
+   PRÉ-VISUALIZAÇÃO DE FOTOS (NOVO SERIAL)
+=========================== */
+
+function handleAddImages(event) {
+    const novosArquivos = Array.from(event.target.files);
+
+    novosArquivos.forEach(file => {
+        fotosSelecionadasNovo.push(file);
+    });
+
+    atualizarPreviewNovo();
+}
+
+function atualizarPreviewNovo() {
+    const container = document.getElementById("preview-container");
+    container.innerHTML = "";
+
+    fotosSelecionadasNovo.forEach((file, index) => {
+        const url = URL.createObjectURL(file);
+        adicionarMiniatura(container, url, index, 'removerFotoNovo');
+    });
+}
+
+function removerFotoNovo(index) {
+    fotosSelecionadasNovo.splice(index, 1);
+    atualizarPreviewNovo();
+}
+
+
+/* ===========================
+   MODAL EDIÇÃO SERIAL
+=========================== */
+
+function abrirModalEdicao(id, viaPopup = false) {
+    edicaoAbertaViaPopup = viaPopup;
+    document.getElementById("modal-edicao").style.display = "flex";
+    document.getElementById("form-edicao-serial").reset();
+    fotosSelecionadasEdicao = []; 
+    fotosExistentesEdicao = []; 
+    document.getElementById("input-fotos-edicao").value = ''; 
+
+    fetch(`/seriais/detalhes/${id}/`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("edicao-serial-id").value = data.id;
+            document.getElementById("edicao-serial-id-text").textContent = `(${data.numero_vci})`;
+            document.getElementById("edicao-numero_vci").value = data.numero_vci;
+            document.getElementById("edicao-numero_tablet").value = data.numero_tablet || '';
+            document.getElementById("edicao-numero_prog").value = data.numero_prog || '';
+            document.getElementById("edicao-email").value = data.email || '';
+            document.getElementById("edicao-telefone").value = data.telefone || '';
+
+            fotosExistentesEdicao = data.fotos_edicao || [];
+            atualizarPreviewEdicao();
+        });
+}
+
+function fecharModalEdicao() {
+    document.getElementById("modal-edicao").style.display = "none";
+
+    // Reabrir popup do serial
+    if (edicaoAbertaViaPopup && serialAtual) {
+        abrirDetalhes(serialAtual);
+    }
+    edicaoAbertaViaPopup = false;
+}
+
+
+function salvarEdicaoSerial() {
+    const id = document.getElementById("edicao-serial-id").value;
+    const form = document.getElementById("form-edicao-serial");
+    const formData = new FormData(form);
+
+    fotosSelecionadasEdicao.forEach(file => {
+        formData.append("fotos", file);
+    });
+
+    fetch(`/seriais/editar/${id}/`, {
+        method: "POST",
+        body: formData 
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById("modal-edicao").style.display = "none";
+
+                // Atualiza tabela
+                buscar(document.getElementById("busca").value);
+
+                // Reabre o popup do serial
+                if (serialAtual) {
+                    setTimeout(() => abrirDetalhes(serialAtual), 150);
+                }
+            } else {
+                alert("Erro: " + JSON.stringify(data.errors));
+            }
+        });
+}
+
+function removerFotoExistente(index, fotoId) {
+    const confirmacao = confirm("Tem certeza de que deseja remover esta foto? A remoção é permanente.");
+    if (!confirmacao) return;
+
+    const csrftoken = getCookie('csrftoken');
+    fetch(`/seriais/remover_foto/${fotoId}/`, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            fotosExistentesEdicao.splice(index, 1);
+            atualizarPreviewEdicao();
+        } else {
+            alert("Erro ao remover foto do servidor: " + data.error);
+        }
+    })
+    .catch(error => {
+        alert("Erro na comunicação com o servidor.");
+    });
+}
+
+
+/* ===========================
+   PRÉ-VISUALIZAÇÃO DE FOTOS (EDIÇÃO SERIAL)
+=========================== */
+
+function handleAddImagesEdicao(event) {
+    const novosArquivos = Array.from(event.target.files);
+
+    novosArquivos.forEach(file => {
+        fotosSelecionadasEdicao.push(file);
+    });
+
+    atualizarPreviewEdicao();
+}
+
+function removerFotoEdicao(index) {
+    fotosSelecionadasEdicao.splice(index, 1);
+    atualizarPreviewEdicao();
+}
+
+function atualizarPreviewEdicao() {
+    const containerExistente = document.getElementById("preview-edicao-existente-container");
+    const containerNova = document.getElementById("preview-edicao-nova-container");
+    
+    if (!containerExistente || !containerNova) return;
+
+    containerExistente.innerHTML = fotosExistentesEdicao.length > 0 ? '' : 'Nenhuma foto salva.';
+    containerNova.innerHTML = '';
+
+    // Renderizar fotos existentes (salvas no DB)
+    fotosExistentesEdicao.forEach((foto, index) => {
+        adicionarMiniatura(containerExistente, foto.url, index, 'removerFotoExistente', foto.id);
+    });
+
+    // Renderizar novas fotos (a serem adicionadas)
+    fotosSelecionadasEdicao.forEach((file, index) => {
+        const url = URL.createObjectURL(file);
+        adicionarMiniatura(containerNova, url, index, 'removerFotoEdicao');
+    });
+}
+
+/* ===========================
+   UTILITÁRIO DE MINIATURA (REAPROVEITÁVEL - Modificado)
+=========================== */
+
+function adicionarMiniatura(container, url, index, funcaoRemocao, fotoId = null) {
+    const div = document.createElement("div");
+    div.style.position = "relative";
+    div.style.width = "90px";
+    div.style.height = "90px";
+    
+    let acaoRemocao = '';
+    if (funcaoRemocao === 'removerFotoExistente' && fotoId !== null) {
+        acaoRemocao = `${funcaoRemocao}(${index}, ${fotoId})`;
+    } else {
+        acaoRemocao = `${funcaoRemocao}(${index})`;
+    }
+
+    div.innerHTML = `
+        <img src="${url}" 
+             onclick="abrirImagemCompleta('${url}')" style="width:100%;height:100%;object-fit:cover;border-radius:6px;cursor:pointer;" alt="Miniatura">
+
+        <button type="button" 
+                onclick="${acaoRemocao}"
+                style="position:absolute;top:-6px;right:-6px;
+                       background:#ff4444;color:white;border:none;
+                       width:22px;height:22px;border-radius:50%;
+                       cursor:pointer;font-size:12px;">
+            ✕
+        </button>
+    `;
+
+    container.appendChild(div);
+}
+
+/* ===========================
+   FUNÇÃO CARREGAR GARANTIAS
+=========================== */
+function carregarGarantias() {
+    fetch(`/seriais/detalhes/${serialAtual}/`)
+        .then(res => res.json())
+        .then(data => {
+
+            const container = document.getElementById("garantias-list");
+            if (!data.garantias || data.garantias.length === 0) {
+                container.innerHTML = `<p style="opacity:.6;">Nenhuma garantia cadastrada.</p>`;
+                return;
+            }
+
+            let html = "";
+
+            data.garantias.forEach(g => {
+
+                let comentarios = g.comentarios || [];
+
+                let ultimo = comentarios.length > 0
+                    ? comentarios[comentarios.length - 1]
+                    : null;
+
+                html += `
+                    <div style="padding:12px;border-bottom:1px solid #ddd;">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        margin-bottom:4px;
+                    ">
+                        <p style="margin:0;font-weight:bold;">${g.titulo ?? "Sem título"}</p>
+
+                        <button onclick="deletarGarantia(${g.id})"
+                            style="
+                                background:none;
+                                border:none;
+                                padding:4px;
+                                cursor:pointer;
+                            ">
+                            <img src="{% static 'icons/botao-excluir.png' %}"
+                                style="width:22px;height:22px;opacity:0.75;">
+                        </button>
+                    </div>
+
+                    <p style="opacity:.6;margin:0 0 6px 0;">${g.criado_em}</p>
+
+
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+                            ${
+                                ultimo && ultimo.fotos.length > 0
+                                ? ultimo.fotos.map(f => `
+                                    <img src="${f}" 
+                                        onclick="abrirImagemCompleta('${f}')"
+                                        style="width:70px;height:70px;border-radius:4px;object-fit:cover;cursor:pointer;">
+                                `).join("")
+                                : ""
+                            }
+                        </div>
+
+                        <button onclick="abrirModalGarantia(${g.id})"
+                                class="btn btn-primary"
+                                style="margin-top:12px;width:100%;">
+                            Ver / Editar Garantia
+                        </button>
+
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        });
+}
+
+
+/* ============ GARANTIA — ABRIR / FECHAR MODAL ============ */
+function abrirPopupGarantia() {
+    document.getElementById("modal-garantia").style.display = "flex";
+}
+
+function fecharPopupGarantia() {
+    document.getElementById("modal-garantia").style.display = "none";
+    document.getElementById("garantiaTitulo").value = "";
+    document.getElementById("garantiaDescricao").value = "";
+    document.getElementById("garantiaFotos").value = "";
+}
+
+
+/* ============ SALVAR GARANTIA ============ */
+function salvarGarantia() {
+
+    const titulo = document.getElementById("garantiaTitulo").value.trim();
+    const descricao = document.getElementById("garantiaDescricao").value.trim();
+
+    if (!titulo) {
+        alert("O título da garantia é obrigatório.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("titulo", titulo);
+    formData.append("descricao", descricao);
+
+    garantiaFotosSelecionadas.forEach(file => {
+        formData.append("fotos", file);
+    });
+
+    fetch(`/seriais/${serialAtual}/garantia/add/`, {
+        method: "POST",
+        body: formData,
+        headers: { "X-CSRFToken": getCookie("csrftoken") }
+    })
+    .then(res => res.json())
+    .then(data => {
+        carregarGarantias();
+        fecharPopupGarantia();
+        garantiaFotosSelecionadas = [];
+    });
+}
+
+let garantiaFotosSelecionadas = [];
+
+function previewGarantiaFotos(event) {
+    const novosArquivos = Array.from(event.target.files);
+
+    // Adiciona os novos arquivos sem remover os anteriores
+    novosArquivos.forEach(file => garantiaFotosSelecionadas.push(file));
+
+    // Re-renderiza as miniaturas
+    renderizarMiniaturasGarantia();
+
+    // LIMPA O INPUT (ESSENCIAL)
+    event.target.value = "";
+}
+
+
+// Remove apenas uma miniatura
+function removerGarantiaFoto(index) {
+    garantiaFotosSelecionadas.splice(index, 1);
+    renderizarMiniaturasGarantia();
+}
+
+// Renderiza o preview igual ao modal de edição
+function renderizarMiniaturasGarantia() {
+    const container = document.getElementById("garantia-preview");
+    container.innerHTML = "";
+
+    garantiaFotosSelecionadas.forEach((file, index) => {
+        const url = URL.createObjectURL(file);
+
+        const div = document.createElement("div");
+        div.style.position = "relative";
+        div.style.width = "90px";
+        div.style.height = "90px";
+
+        div.innerHTML = `
+            <img src="${url}"
+                 onclick="abrirImagemCompleta('${url}')"
+                 style="width:100%;height:100%;object-fit:cover;border-radius:6px;cursor:pointer;">
+
+            <button type="button"
+                onclick="removerGarantiaFoto(${index})"
+                style="
+                    position:absolute;top:-8px;right:-8px;
+                    background:#ff4444;color:white;border:none;
+                    width:24px;height:24px;border-radius:50%;
+                    cursor:pointer;font-size:12px;">
+                ✕
+            </button>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+/* ============ NOVAS FUNÇÕES PARA EDITAR GARANTIA ============ */
+
+function abrirModalGarantia(garantiaId) {
+    garantiaAtual = garantiaId; // <<< IMPORTANTE
+
+    document.getElementById("modal-garantia-edicao").style.display = "flex";
+    
+    fetch(`/seriais/garantia/${garantiaId}/`)
+        .then(res => res.json())
+        .then(g => {
+
+            document.getElementById("garantia-edicao-titulo").innerText = g.titulo;
+
+            let html = "";
+
+            g.comentarios.forEach(c => {
+                html += `
+                    <div style="padding:15px;border-bottom:1px solid #eee;position:relative;">
+
+                        <!-- ÍCONE DE DELETAR (só aparece para superuser) -->
+                        ${isSuperUser ? `
+                            <button onclick="deletarComentario(${c.id})"
+                                style="position:absolute;top:10px;right:10px;
+                                    background:none;border:none;font-size:20px;
+                                    cursor:pointer;color:#c00;">
+                                🗑️
+                            </button>
+                        ` : ""}
+
+                        <p style="opacity:.6;font-size:13px;">${c.criado_em}</p>
+                        <p style="margin:6px 0;">${c.texto}</p>
+
+                        <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+                            ${c.fotos.map(f => `
+                                <img src="${f}" onclick="abrirImagemCompleta('${f}')"
+                                    style="width:80px;height:80px;object-fit:cover;border-radius:6px;cursor:pointer;">
+                            `).join("")}
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById("garantia-comentarios-list").innerHTML = html;
+
+        });
+}
+
+
+function fecharModalGarantiaEdicao() {
+    document.getElementById("modal-garantia-edicao").style.display = "none";
+}
+
+
+function fecharModalNovoComentario() {
+    document.getElementById("modal-novo-comentario").style.display = "none";
+}
+
+
+function abrirModalNovoComentario() {
+    document.getElementById("modal-novo-comentario").style.display = "flex";
+    document.getElementById("comentarioTexto").value = "";
+    comentarioFotosSelecionadas = [];
+    renderizarPreviewComentario();
+}
+
+
+function previewComentarioFotos(event) {
+    const novos = Array.from(event.target.files);
+    novos.forEach(f => comentarioFotosSelecionadas.push(f));
+
+    renderizarPreviewComentario();
+    event.target.value = "";
+}
+
+function removerComentarioFoto(index) {
+    comentarioFotosSelecionadas.splice(index, 1);
+    renderizarPreviewComentario();
+}
+
+function renderizarPreviewComentario() {
+    const container = document.getElementById("comentario-preview");
+    container.innerHTML = "";
+
+    comentarioFotosSelecionadas.forEach((file, index) => {
+        const url = URL.createObjectURL(file);
+
+        const div = document.createElement("div");
+        div.style.position = "relative";
+        div.style.width = "90px";
+        div.style.height = "90px";
+
+        div.innerHTML = `
+            <img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;">
+            
+            <button onclick="removerComentarioFoto(${index})"
+                style="position:absolute;top:-8px;right:-8px;width:24px;height:24px;
+                       background:#ff4444;color:white;border:none;border-radius:50%;cursor:pointer;">
+                ✕
+            </button>
+        `;
+
+        container.appendChild(div);
+    });
+}
+
+function salvarNovoComentario() {
+    const texto = document.getElementById("comentarioTexto").value.trim();
+
+    if (!texto) {
+        alert("O comentário não pode estar vazio.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("texto", texto);
+
+    comentarioFotosSelecionadas.forEach(f => {
+        formData.append("fotos", f);
+    });
+
+    fetch(`/seriais/garantia/${garantiaAtual}/add_comentario/`, {
+        method: "POST",
+        headers: { "X-CSRFToken": getCookie("csrftoken") },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            fecharModalNovoComentario();
+            abrirModalGarantia(garantiaAtual); // recarrega comentários
+        } else {
+            alert("Erro ao salvar comentário.");
+        }
+    });
+}
+
+function deletarGarantia(id) {
+    if (!confirm("Tem certeza que deseja excluir esta garantia?")) return;
+
+    fetch(`/seriais/garantia/${id}/delete/`, {
+        method: "POST",
+        headers: { "X-CSRFToken": getCookie("csrftoken") },
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            carregarGarantias();
+        } else {
+            alert("Erro ao deletar garantia.");
+        }
+    })
+    .catch(err => {
+        alert("Erro de conexão ao excluir garantia.");
+    });
+}
+
+function deletarComentario(id) {
+    if (!confirm("Tem certeza que deseja excluir este comentário?")) return;
+
+    fetch(`/seriais/comentario/${id}/delete/`, {
+        method: "POST",
+        headers: { "X-CSRFToken": getCookie("csrftoken") }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            abrirModalGarantia(garantiaAtual); // recarrega comentários
+        } else {
+            alert("Erro ao excluir comentário");
+        }
+    });
+}
+
+</script>

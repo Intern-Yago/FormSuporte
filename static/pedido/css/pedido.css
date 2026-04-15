@@ -1,0 +1,141 @@
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+body {
+  background: #f2f4f7;
+  margin: 0;
+  padding: 24px;
+}
+
+/* CONTAINER */
+.orcamento {
+  width: 980px;
+  margin: auto;
+  background: #fff;
+  border-radius: 8px;
+  padding: 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+}
+
+/* TABELAS */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+}
+
+td, th {
+  border: 1px solid #e0e0e0;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+th {
+  background: #f5f7fa;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* CABEÇALHO */
+.logo {
+  width: 170px;
+  display: block;
+  margin: 0 auto 6px;
+}
+
+.small {
+  font-size: 11px;
+  color: #555;
+  line-height: 1.4;
+}
+
+.pedido-box {
+  height: 70px;
+  border: 1px dashed #c7c7c7;
+  border-radius: 4px;
+}
+
+/* LABELS */
+.label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  background: #fafafa;
+}
+
+.center { text-align: center; }
+.right  { text-align: right; }
+.bold   { font-weight: 600; }
+
+/* INPUTS */
+input,
+textarea,
+select {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 13px;
+}
+
+textarea {
+  resize: none;
+  min-height: 48px;
+}
+
+/* ITENS */
+#itens-table td {
+  height: 34px;
+}
+
+.total-linha {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* TOTAL */
+.total-geral {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0b7cff;
+}
+
+/* AÇÕES */
+.actions {
+  width: 980px;
+  margin: 14px auto 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+button {
+  padding: 8px 18px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #fff;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #f0f0f0;
+}
+
+button.primary {
+  background: #0b7cff;
+  color: #fff;
+  border-color: #0b7cff;
+}
+
+button.primary:hover {
+  background: #0866cc;
+}
+
+/* PRINT */
+@media print {
+  body { background: #fff; padding: 0; }
+  .orcamento { box-shadow: none; border-radius: 0; }
+  .actions { display: none; }
+}
